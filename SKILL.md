@@ -108,8 +108,8 @@ workrally upload ./character.png -o json
 # 步骤 2: 入媒资库（必须！返回 asset_id + 带签名的 asset_details）
 workrally asset create --url <cdn_url> --project-id <project_id> -o json
 # 步骤 3（按需）: 挂载到资产库（必传 asset_id + 完整 asset_details）
-workrally material add --material-id <asset_id> --material-detail '<asset_details_json>' \
-  --parent-id <target_id> --type 2 --project-ids <project_id>
+workrally material add --json-list '[{"material_id":"<asset_id>","material_name":"名称","material_type":2,"parent_id":"<target_id>","material_detail":<asset_details_json>}]' \
+  --project-ids <project_id>
 ```
 
 > **步骤 1→2 强制绑定**，上传后必须入媒资库。视频/音频为私有读，只有入库后的 URL 才带签名。

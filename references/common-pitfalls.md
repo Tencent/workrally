@@ -124,19 +124,22 @@ workrally asset create --url <cdn_url> --project-id <project_id> -o json
 ### 问题
 
 ```bash
-# ❌ 错误：material add 缺少 material-id 或 material-detail
-workrally material add --name "素材" --type 2 --parent-id role_person
+# ❌ 错误：JSON 中缺少 material_id 或 material_detail
+workrally material add --json-list '[{"material_name":"素材","material_type":2,"parent_id":"role_person"}]'
 # 素材不会在资产库列表中显示！
 ```
 
 ### 正确做法
 
 ```bash
-# ✅ 必须传 asset_id 和完整的 asset_details
-workrally material add \
-  --material-id <asset_id> \
-  --material-detail '<完整的 asset_details JSON>' \
-  --name "素材名" --type 2 --parent-id <parent_id> --project-ids <project_id>
+# ✅ 必须在 JSON 中传 material_id（=asset_id）和完整的 material_detail（=asset_details）
+workrally material add --json-list '[{
+  "material_id": "<asset_id>",
+  "material_name": "素材名",
+  "material_type": 2,
+  "parent_id": "<parent_id>",
+  "material_detail": <完整的 asset_details 对象>
+}]' --project-ids <project_id>
 ```
 
 ---

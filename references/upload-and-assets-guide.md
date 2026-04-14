@@ -88,22 +88,22 @@ workrally asset create --url <cdn_url> --project-id <project_id> -o json
 ### 步骤 3: 挂载到资产库（按需）
 
 ```bash
-workrally material add \
-  --material-id <asset_id> \
-  --material-detail '<完整的 asset_details JSON>' \
-  --name "角色名_状态" \
-  --type 2 \
-  --parent-id <目标位置的 material_id> \
-  --project-ids <project_id>
+workrally material add --json-list '[{
+  "material_id": "<asset_id>",
+  "material_name": "角色名_状态",
+  "material_type": 2,
+  "parent_id": "<目标位置的 material_id>",
+  "material_detail": <完整的 asset_details 对象>
+}]' --project-ids <project_id>
 ```
 
-**关键参数**：
-- `--material-id` — **必须**传 `asset_id`（步骤 2 返回的 `id`）
-- `--material-detail` — **必须**传完整的 `asset_details`（步骤 2 返回的 `asset_details` 对象）
-- `--type` — 素材类型：`2`=图片，`3`=视频，`4`=音频，`1`=文件夹
-- `--parent-id` — 目标位置：`role_person`/`role_prop`/`role_scene` 或已有文件夹/状态的 `material_id`
+**关键字段**（JSON 数组中每个对象）：
+- `material_id` — **必须**传 `asset_id`（步骤 2 返回的 `id`）
+- `material_detail` — **必须**传完整的 `asset_details`（步骤 2 返回的 `asset_details` 对象）
+- `material_type` — 素材类型：`2`=图片，`3`=视频，`4`=音频，`1`=文件夹
+- `parent_id` — 目标位置：`role_person`/`role_prop`/`role_scene` 或已有文件夹/状态的 `material_id`
 
-> ⚠️ 步骤 3 如果缺少 `material-id` 或 `material-detail`，素材不会在资产库列表中显示！
+> ⚠️ 步骤 3 如果 JSON 中缺少 `material_id` 或 `material_detail`，素材不会在资产库列表中显示！
 
 ---
 
@@ -173,7 +173,7 @@ workrally material list <状态的material_id> -o json
 ### 创建文件夹
 
 ```bash
-workrally material add --name "新文件夹" --type 1 --parent-id role_person
+workrally material add --json-list '[{"material_name":"新文件夹","material_type":1,"parent_id":"role_person"}]'
 ```
 
 ### 获取角色详情（含 LoRA/提示词）
@@ -211,7 +211,7 @@ workrally asset get <asset_id> -o json
 
 ### 批量创建素材到资产库
 
-`material add` 支持 `--material-list` 参数传入数组，一次添加多个素材：
+`material add` 支持 `--json-list` 参数传入 JSON 数组，一次添加多个素材。也可通过 `tools call` 直接调用底层 MCP 工具：
 
 ```bash
 workrally tools call material_manage --json-args '{

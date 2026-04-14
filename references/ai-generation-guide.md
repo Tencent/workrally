@@ -280,8 +280,8 @@ AI 生成的图片/视频会**自动入库到媒资系统**（后台自动完成
 # 2. 获取 asset_details
 workrally asset get <asset_id> -o json
 # 3. 挂载到资产库
-workrally material add --material-id <asset_id> --material-detail '<asset_details>' \
-  --name "角色名" --type 2 --parent-id <role_condition_id> --project-ids <project_id>
+workrally material add --json-list '[{"material_id":"<asset_id>","material_name":"角色名","material_type":2,"parent_id":"<role_condition_id>","material_detail":<asset_details>}]' \
+  --project-ids <project_id>
 ```
 
 ### 如果需要在画布上展示
