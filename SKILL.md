@@ -6,7 +6,7 @@ description: >-
   Use when user asks to generate images, generate videos, manage projects,
   upload files, download assets, manage materials, or interact with
   WorkRally platform via command line.
-version: 2.0.0
+version: 2.1.0
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -143,6 +143,6 @@ workrally material add --json-list '[{"material_id":"<asset_id>","material_name"
 ## 环境变量
 
 - `WORKRALLY_API_KEY` — API Key (Bearer Token)
-- `WORKRALLY_ENDPOINT` — API 端点 (默认 `https://workrally.qq.com/api/mcp`)
+- `WORKRALLY_ENDPOINT` — API 端点 (默认 `https://workrally.qq.com/zenstudio/api/mcp`)
 - `WORKRALLY_CONFIG_DIR` — 配置文件目录 (默认 `~/.workrally`，非持久化容器建议指向持久卷)
 - `WORKRALLY_NO_UPDATE_CHECK=1` — 禁用自动版本检查 (CI/CD 推荐)
