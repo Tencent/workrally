@@ -24,6 +24,12 @@ skill/
 - **项目 & 媒资管理** — 项目 CRUD、素材上传入库、资产库树形管理
 - **通用透传** — 可调用 WorkRally MCP Server 全部工具
 
+## 第三方商店
+
+- [SkillHub](https://skillhub.cn/skills/workrally)
+- [ClawHub](https://clawhub.ai/tencent-adm/workrally)
+- [Skills](https://skills.sh/tencent/workrally/workrally)
+
 ## 快速开始
 
 ```bash

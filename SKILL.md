@@ -34,7 +34,7 @@ export WORKRALLY_API_KEY=<YOUR_API_KEY>       # 环境变量（仅推荐 CI/CD�
 workrally auth status                         # 验证登录状态
 ```
 
-API Key 申请：[Claw 配置](https://workrally.qq.com/open-api)
+API Key 申请：[龙虾配置](https://workrally.qq.com/open-api)
 
 ## 命令速查
 
