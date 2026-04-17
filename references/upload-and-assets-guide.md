@@ -61,6 +61,8 @@ workrally upload ./character.png -o json
 
 ### 步骤 2: 入媒资库（必须！）
 
+> 🔒 `--url` 仅接受 `zenvideo-pro.gtimg.com` 域名（即 `upload` 返回值或媒资库 URL），详见 SKILL.md 规则 9。
+
 ```bash
 workrally asset create --url <cdn_url> --project-id <project_id> -o json
 ```

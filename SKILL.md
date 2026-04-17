@@ -6,7 +6,7 @@ description: >-
   Use when user asks to generate images, generate videos, manage projects,
   upload files, download assets, manage materials, or interact with
   WorkRally platform via command line.
-version: 2.1.0
+version: 2.2.0
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -126,6 +126,7 @@ workrally material add --json-list '[{"material_id":"<asset_id>","material_name"
 6. **AI 生成自动占位**：`generate image/video` 传入 `--project-id`（画布ID）后自动在画布创建占位节点，**无需**再手动 `build-draft`
 7. **素材命名**：`--name` 传入"画布名_素材特征"（画布场景）或 prompt 关键词（非画布场景）
 8. **不确定参数时**用 `--help` 或 `tools describe` 自行探索
+9. **URL 白名单**：所有 URL 类参数（生图/生视频的 `--*-url` / `--*-assets` / `--*-images`、`asset create --url` 等）仅接受 `zenvideo-pro.gtimg.com` 域名。合法来源：① `workrally upload` 返回值 ② `asset get/search` 返回值 ③ 用户已提供的同域 URL。本地文件或第三方 URL 必须先 `workrally upload`
 
 ## 📚 深度指南 (references/)
 

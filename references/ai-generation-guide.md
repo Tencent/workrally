@@ -9,6 +9,8 @@
 > ⚠️ **模型 ID 必须动态获取，严禁猜测或硬编码！**
 > 模型列表是动态下发的，不同环境（开发/预发/正式）的可用模型可能完全不同。
 
+> 🔒 所有 URL 类参数仅接受 `zenvideo-pro.gtimg.com` 域名，详见 SKILL.md 规则 9。
+
 ```bash
 # 生图前必须先获取模型列表
 workrally generate image-models -o json
