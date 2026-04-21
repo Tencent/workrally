@@ -10,7 +10,7 @@
 
 - **管理命令**: `workrally asset search/create/get/update`
 - **本质**: 扁平的文件列表，每个素材必须归属一个项目
-- **特点**: 视频/音频为**私有读存储**，只有入库后的 URL 才带签名可访问
+- **特点**: 视频/音频为**私有读存储**，必须入库后才能正常访问
 - **何时使用**: 所有素材都**必须**经过媒资库（`asset create`）才能被系统使用
 
 ### 资产库 (Material) — 树形目录管理
@@ -53,15 +53,15 @@ workrally upload ./character.png -o json
 ```
 
 **URL 字段说明**：
-- `url` — 可直接访问的地址。图片为公开 URL；音视频为带签名的临时 URL（约10小时有效）
-- `original_url` — 原始 CDN 路径（不带签名），图片可直接访问，音视频无法直接访问
+- `url` — 可直接访问的地址。图片为公开 URL；音视频为临时访问 URL
+- `original_url` — 原始 CDN 路径（不含访问凭证），图片可直接访问，音视频无法直接访问
 - `signed_url` — 仅音视频返回，与 `url` 相同
 
 > ⚠️ 音视频文件为私有读存储，**必须使用 `url` 或 `signed_url`**，不要使用 `original_url`。
 
 ### 步骤 2: 入媒资库（必须！）
 
-> 🔒 `--url` 仅接受 `zenvideo-pro.gtimg.com` 域名（即 `upload` 返回值或媒资库 URL），详见 SKILL.md 规则 9。
+> 🔒 `--url` 仅接受 WorkRally 官方媒资 URL（即 `upload` 返回值或媒资库 URL），详见 SKILL.md 规则 9。
 
 ```bash
 workrally asset create --url <cdn_url> --project-id <project_id> -o json
@@ -85,7 +85,7 @@ workrally asset create --url <cdn_url> --project-id <project_id> -o json
 - `id` — 即 `asset_id`，后续所有操作都需要这个 ID
 - `asset_details` — 完整素材元数据，**步骤 3 必须完整传入**
 
-> ⚠️ `asset_details.url` 和 `asset_details.download_url` 为带签名的地址，约10小时后过期。过期后需通过 `workrally asset get` 重新获取。
+> ⚠️ `asset_details.url` 和 `asset_details.download_url` 为临时访问 URL，过期后需通过 `workrally asset get` 重新获取。获取到的 URL 可直接作为其他工具的 URL 参数传入。
 
 ### 步骤 3: 挂载到资产库（按需）
 
@@ -193,18 +193,20 @@ workrally role get <role_id> -o json
 
 ---
 
-## 6. 素材 URL 签名说明
+## 6. 素材 URL 访问说明
 
 | 素材类型 | 存储策略 | URL 行为 |
 |----------|---------|---------|
-| 图片 | **公开读** | `url` 永久可访问 |
-| 视频 | **私有读** | `url` 带签名，约10小时有效 |
-| 音频 | **私有读** | `url` 带签名，约10小时有效 |
+| 图片 | **公开读** | `url` 可直接访问 |
+| 视频 | **私有读** | `url` 为临时访问地址，过期后需重新获取 |
+| 音频 | **私有读** | `url` 为临时访问地址，过期后需重新获取 |
+
+> 📎 媒资 API 返回的素材 URL 可直接作为其他工具的 URL 参数传入，**无需手动处理**。如遇"非法或已过期"提示，通过下列命令重新获取即可。
 
 过期后重新获取：
 ```bash
 workrally asset get <asset_id> -o json
-# 返回中的 url 和 download_url 为新签名的地址
+# 返回中的 url 和 download_url 为新的可访问地址
 ```
 
 ---

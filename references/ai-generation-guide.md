@@ -9,7 +9,7 @@
 > ⚠️ **模型 ID 必须动态获取，严禁猜测或硬编码！**
 > 模型列表是动态下发的，不同环境（开发/预发/正式）的可用模型可能完全不同。
 
-> 🔒 所有 URL 类参数仅接受 `zenvideo-pro.gtimg.com` 域名，详见 SKILL.md 规则 9。
+> 🔒 所有 URL 类参数仅接受 WorkRally 官方媒资 URL，详见 SKILL.md 规则 9。
 
 ```bash
 # 生图前必须先获取模型列表
@@ -90,7 +90,7 @@ workrally generate image \
 | `--model` | ✅ | — | 模型 ID（从 `image-models` 获取） |
 | `--aspect-ratio` | — | `16:9` | 宽高比 |
 | `--resolution` | — | `0` | 分辨率等级: 0=1K, 1=2K |
-| `--count` | — | `1` | 生成数量: 1/2/4（一次不超过4张） |
+| `--count` | — | `1` | 生成数量 1-4（后端一个任务生成 1 张，count>1 会并发发起 N 个独立任务并返回 task_ids 数组） |
 | `--input-images` | — | — | 参考图 URL（逗号分隔） |
 | `--project-id` | — | — | 画布 ID（传入后自动创建占位节点） |
 | `--short-series-project-id` | — | — | 项目 ID |
@@ -185,7 +185,7 @@ workrally generate video \
 | `--model` | ✅ | — | Provider ID（从 `video-models` 获取） |
 | `--mode` | — | `Text` | 驱动模式: Text/FirstLastFrame/FrameSequence/SubjectToVideo |
 | `--duration` | — | — | 视频时长（秒），可选值取决于模型 |
-| `--count` | — | `1` | 生成数量: 1-4 |
+| `--count` | — | `1` | 生成数量 1-4（后端一个任务生成 1 个视频，count>1 会并发发起 N 个独立任务并返回 task_ids 数组） |
 | `--enable-sound` | — | false | 生成音效（仅部分模型支持） |
 | `--project-id` | — | — | 画布 ID（传入后自动创建占位节点） |
 | `--short-series-project-id` | — | — | 项目 ID |
@@ -244,7 +244,7 @@ workrally generate task <task_id> --poll
 
 ### 4.4 多任务并发
 
-当 `--count` > 1 时，返回的 `task_ids` 是数组。使用 `--poll` 时 CLI 会自动并发轮询所有任务。
+后端「一个任务只生成 1 个素材」，当 `--count` > 1 时，CLI 会并发发起 N 个独立任务，返回的 `task_ids` 是长度为 N 的数组，每个 task 产出 1 个素材。使用 `--poll` 时 CLI 会自动并发轮询所有任务，总耗时约等于单任务耗时。
 
 ---
 

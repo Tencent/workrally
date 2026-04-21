@@ -6,7 +6,7 @@ description: >-
   Use when user asks to generate images, generate videos, manage projects,
   upload files, download assets, manage materials, or interact with
   WorkRally platform via command line.
-version: 2.2.0
+version: 2.3.0
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -47,7 +47,7 @@ workrally project update <id> --name "新名称" # 更新项目
 
 # === 上传 / 下载 ===
 workrally upload ./file.png -o json           # 上传文件 (COS SDK 直传)
-workrally download <asset_id> [-d ./output/]  # 下载素材 (自动处理私有读签名)
+workrally download <asset_id> [-d ./output/]  # 下载素材 (自动处理访问凭证)
 
 # === AI 生图 ===
 workrally generate image-models               # 查看可用模型（必须先调用！）
@@ -62,7 +62,7 @@ workrally generate video --mode FirstLastFrame --prompt "描述" --model <provid
 # --mode 默认 Text；通用选项: --duration <秒> --count 1-4 --enable-sound --poll
 
 # === 媒资库 (asset) — 项目级媒体文件池 ===
-workrally asset create --url <cdn_url> --project-id <id> -o json  # 入库（返回带签名 URL）
+workrally asset create --url <cdn_url> --project-id <id> -o json  # 入库（返回可访问 URL）
 workrally asset search --project-id <id>      # 搜索
 workrally asset get <asset_id>                # 详情
 workrally asset update <asset_id> --name "新名称"  # 更新素材 (目前仅支持改名)
@@ -105,14 +105,14 @@ workrally upgrade [--check]                   # 升级 / 仅检查
 ```bash
 # 步骤 1: 上传 → CDN URL
 workrally upload ./character.png -o json
-# 步骤 2: 入媒资库（必须！返回 asset_id + 带签名的 asset_details）
+# 步骤 2: 入媒资库（必须！返回 asset_id + asset_details）
 workrally asset create --url <cdn_url> --project-id <project_id> -o json
 # 步骤 3（按需）: 挂载到资产库（必传 asset_id + 完整 asset_details）
 workrally material add --json-list '[{"material_id":"<asset_id>","material_name":"名称","material_type":2,"parent_id":"<target_id>","material_detail":<asset_details_json>}]' \
   --project-ids <project_id>
 ```
 
-> **步骤 1→2 强制绑定**，上传后必须入媒资库。视频/音频为私有读，只有入库后的 URL 才带签名。
+> **步骤 1→2 强制绑定**，上传后必须入媒资库。视频/音频为私有读，需经媒资库才能正常访问。
 >
 > **步骤 3 由 Agent 判断**："上传文件" → 两步 | "上传到角色/道具/场景/文件夹" → 三步 | "媒资素材添加到资产库" → 仅步骤 3
 
@@ -126,7 +126,7 @@ workrally material add --json-list '[{"material_id":"<asset_id>","material_name"
 6. **AI 生成自动占位**：`generate image/video` 传入 `--project-id`（画布ID）后自动在画布创建占位节点，**无需**再手动 `build-draft`
 7. **素材命名**：`--name` 传入"画布名_素材特征"（画布场景）或 prompt 关键词（非画布场景）
 8. **不确定参数时**用 `--help` 或 `tools describe` 自行探索
-9. **URL 白名单**：所有 URL 类参数（生图/生视频的 `--*-url` / `--*-assets` / `--*-images`、`asset create --url` 等）仅接受 `zenvideo-pro.gtimg.com` 域名。合法来源：① `workrally upload` 返回值 ② `asset get/search` 返回值 ③ 用户已提供的同域 URL。本地文件或第三方 URL 必须先 `workrally upload`
+9. **URL 白名单**：所有 URL 类参数（生图/生视频的 `--*-url` / `--*-assets` / `--*-images`、`asset create --url` 等）仅接受 WorkRally 官方媒资 URL。合法来源：① `workrally upload` 返回值 ② `asset get/search` 返回值（可直接传入） ③ 用户已提供的官方 URL。本地文件或第三方 URL 必须先 `workrally upload`。如遇"非法或已过期"提示，通过 `asset get/search` 重新获取即可。
 
 ## 📚 深度指南 (references/)
 

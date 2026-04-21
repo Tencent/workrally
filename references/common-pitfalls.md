@@ -209,13 +209,13 @@ workrally role get "abc" -o json
 ### 问题
 
 ```bash
-# ❌ 错误：音视频使用无签名的 original_url
+# ❌ 错误：音视频使用 original_url（不含访问凭证）
 # original_url 是原始 CDN 路径，音视频无法直接访问
 ```
 
 ### 正确做法
 
-始终使用 `url` 或 `download_url`（带签名），约10小时有效。过期后通过 `asset get` 重新获取。
+始终使用 `url` 或 `download_url`，这些是可直接访问的临时 URL。过期后通过 `asset get` 重新获取即可，返回的新 URL 可直接作为其他工具的 URL 参数传入。
 
 ---
 
