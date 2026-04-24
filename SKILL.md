@@ -6,7 +6,7 @@ description: >-
   Use when user asks to generate images, generate videos, manage projects,
   upload files, download assets, manage materials, or interact with
   WorkRally platform via command line.
-version: 2.3.0
+version: 2.3.1
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com

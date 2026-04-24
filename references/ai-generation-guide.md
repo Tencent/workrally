@@ -89,7 +89,7 @@ workrally generate image \
 | `--prompt` | ✅ | — | 图片描述 |
 | `--model` | ✅ | — | 模型 ID（从 `image-models` 获取） |
 | `--aspect-ratio` | — | `16:9` | 宽高比 |
-| `--resolution` | — | `0` | 分辨率等级: 0=1K, 1=2K |
+| `--resolution` | — | `0` | 分辨率等级: 0=1K, 1=2K, 2=4K（各模型支持范围不同，以 `image-models` 返回的 `kontext_config.support_resolutions` 为准） |
 | `--count` | — | `1` | 生成数量 1-4（后端一个任务生成 1 张，count>1 会并发发起 N 个独立任务并返回 task_ids 数组） |
 | `--input-images` | — | — | 参考图 URL（逗号分隔） |
 | `--project-id` | — | — | 画布 ID（传入后自动创建占位节点） |
