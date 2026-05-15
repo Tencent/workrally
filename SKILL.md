@@ -2,21 +2,21 @@
 name: workrally
 description: >-
   WorkRally CLI (workrally) — 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集。
-  支持 AI 生图、AI 生视频、项目管理、资产库、媒资管理、无限画布、文件上传下载等。
+  支持 AI 生图、AI 生视频、项目/剧集/场次/分镜的完整 CRUD、资产库、媒资管理、无限画布、文件上传下载等。
   Use when user asks to generate images, generate videos, manage projects,
-  upload files, download assets, manage materials, or interact with
-  WorkRally platform via command line.
-version: 2.3.1
+  series, shots, upload files, download assets, manage materials, or
+  interact with WorkRally platform via command line.
+version: 2.4.0
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
 user-invocable: true
-metadata: {"openclaw":{"emoji":"🎬","requires":{"bins":["workrally"],"env":["WORKRALLY_API_KEY","WORKRALLY_ENDPOINT","WORKRALLY_CONFIG_DIR","WORKRALLY_NO_UPDATE_CHECK"]},"primaryEnv":"WORKRALLY_API_KEY","credentials":{"storage":"~/.workrally/config.json","configDirEnv":"WORKRALLY_CONFIG_DIR","description":"workrally auth login 写入的 API Key 持久化文件，JSON 格式，仅存储 api_key 和 endpoint。非持久化容器中可通过 WORKRALLY_CONFIG_DIR 环境变量指定配置目录"},"install":[{"id":"npm","kind":"node","package":"workrally","bins":["workrally"],"label":"Install WorkRally CLI (npm)"}],"category":"AIGC","tags":["workrally","aigc","cli","video-generation","image-generation","ai-tools"]}}
+metadata: {"openclaw":{"emoji":"🎬","requires":{"bins":["workrally"],"env":["WORKRALLY_API_KEY","WORKRALLY_ENDPOINT","WORKRALLY_CONFIG_DIR","WORKRALLY_NO_UPDATE_CHECK"]},"primaryEnv":"WORKRALLY_API_KEY","credentials":{"storage":"~/.workrally/config.json","configDirEnv":"WORKRALLY_CONFIG_DIR","description":"workrally auth login 写入的 API Key 持久化文件，JSON 格式，仅存储 api_key 和 endpoint。非持久化容器中可通过 WORKRALLY_CONFIG_DIR 环境变量指定配置目录"},"install":[{"id":"npm","kind":"node","package":"workrally","bins":["workrally"],"label":"Install WorkRally CLI (npm)"}],"category":"AIGC","tags":["workrally","aigc","cli","video-generation","image-generation","ai-tools","story","shot","series"]}}
 ---
 
 # WorkRally CLI (workrally)
 
-面向 AI Agent 的 AIGC 漫剧视频创作全流程命令行工具，封装 WorkRally 平台 20+ 核心能力。
+面向 AI Agent 的 AIGC 漫剧视频创作全流程命令行工具，封装 WorkRally 平台 30+ 核心能力，支持项目/剧集/场次的完整 CRUD、AI 生图/生视频、画布、资产库、媒资管理、文件上传等。
 
 ## 安装 & 配置
 
@@ -39,11 +39,41 @@ API Key 申请：[龙虾配置](https://workrally.qq.com/open-api)
 ## 命令速查
 
 ```bash
-# === 项目管理 ===
+# === 项目（project）— list / get / create / update（软删除无子命令，见下） ===
 workrally project list [--search "关键词"]    # 列出/搜索项目
-workrally project create "项目名"             # 创建项目
 workrally project get <id>                    # 项目详情
+workrally project create "项目名"             # 创建项目
 workrally project update <id> --name "新名称" # 更新项目
+workrally tools call project_delete --json-args '{"project_id":"<id>"}'   # 软删除单个项目（→回收站）
+# 批量：workrally tools describe project_delete  # 使用 project_ids 数组
+
+# === 剧集（series）— 全新命令组（CRUD 完整） ===
+workrally series list --project-id <id>                                 # 剧集列表
+workrally series get <series_id> --project-id <id>                      # 剧集详情
+workrally series create --project-id <id> --name "第一集"                # 创建剧集
+workrally series update <series_id> --project-id <id> --name "新名称"    # 更新剧集
+workrally series delete <ids...>                                        # 软删除（→回收站）
+
+# === 场次（shot/story）— 短番制作核心单元 ===
+# --- CRUD 五件套 ---
+workrally shot list --series-id <id>                                              # 场次列表
+workrally shot get <story_id>                                                     # 场次详情
+workrally shot create --series-id <id> --json-list '[{"image_prompt":"..."}]'     # 批量创建
+workrally shot update <story_id> --image-prompt "..." --animation-prompt "..."    # 单条更新
+workrally shot update <story_id> --story-num "EP01-SC01"                          # 单条改名（story_num）
+workrally shot update --batch '[{"story_id":"...","image_prompt":"..."}]'         # 批量更新
+workrally shot delete <story_ids...>                                              # 软删除（→回收站）
+# --- 业务语义糖（CRUD 之外）---
+workrally shot sort --series-id <id> --order id1,id2,id3                                # 重排
+workrally shot image-models                                                              # ⭐ 场次专用图片模型（≠ canvas）
+workrally shot video-models                                                              # ⭐ 场次专用视频模型（固定 mode=9）
+workrally shot set-model [--story-ids id1,id2] --video-provider 1 --duration 5 --aspect-ratio 16:9   # 配置视频模型（推荐）
+workrally shot set-model [--story-ids id1,id2] --image-model <en_name> --aspect-ratio 16:9          # 配置图片模型
+workrally shot bind --story-id <id> --type image --assets '[{...}]'                     # 绑定参考资产
+workrally shot recognize --project-id <id> --series-id <id> [--scope all|project]       # 识别角色
+workrally shot generate-image --story-ids id1,id2 [--count N]                           # 仅提交；无 --poll/--model；查结果 shot get-result --type image [--watch]
+workrally shot generate-video --story-ids id1,id2 [--count N]                          # 同上；--type video。无 --model/duration/ratio/--poll
+
 
 # === 上传 / 下载 ===
 workrally upload ./file.png -o json           # 上传文件 (COS SDK 直传)
@@ -116,6 +146,10 @@ workrally material add --json-list '[{"material_id":"<asset_id>","material_name"
 >
 > **步骤 3 由 Agent 判断**："上传文件" → 两步 | "上传到角色/道具/场景/文件夹" → 三步 | "媒资素材添加到资产库" → 仅步骤 3
 
+## 关键工作流：场次创作
+
+
+
 ## ⚠️ 重要规则
 
 1. **前端链接必须用 `workrally url build` 生成**，严禁自行拼接 URL
@@ -134,6 +168,7 @@ workrally material add --json-list '[{"material_id":"<asset_id>","material_name"
 
 | 文档 | 内容 |
 |------|------|
+| [`references/shot-guide.md`](references/shot-guide.md) | 场次操作 — CRUD/排序、提示词、模型、生成与结果；**§9** 场次创作工作流与专项规则（原 SKILL 正文迁入） |
 | [`references/canvas-guide.md`](references/canvas-guide.md) | 无限画布操作 — 8种节点类型、画板嵌套、build-draft 增量/覆盖模式、协同编辑 |
 | [`references/upload-and-assets-guide.md`](references/upload-and-assets-guide.md) | 上传与素材管理 — 三步上传流程、媒资库 vs 资产库、树形目录操作 |
 | [`references/ai-generation-guide.md`](references/ai-generation-guide.md) | AI 生成 — Kontext 生图、4种视频驱动模式、模型动态获取、任务轮询 |
