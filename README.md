@@ -9,11 +9,14 @@
 ```
 skill/
 ├── SKILL.md                ← Skill 入口（元数据 + 指令），ClawHub 解析此文件
+├── LICENSE.txt             ← 许可证
+├── sync-to-repo.sh        ← 同步脚本
 └── references/             ← 深度参考文档，AI Agent 按需加载
-    ├── canvas-guide.md         无限画布操作指南
-    ├── upload-and-assets-guide.md  上传与素材管理指南
     ├── ai-generation-guide.md      AI 生成指南
-    └── common-pitfalls.md          常见易错点
+    ├── canvas-guide.md             无限画布操作指南
+    ├── common-pitfalls.md          常见易错点
+    ├── shot-guide.md               分镜指南
+    └── upload-and-assets-guide.md  上传与素材管理指南
 ```
 
 ## 核心能力
