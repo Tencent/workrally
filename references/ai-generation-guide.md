@@ -111,18 +111,18 @@ workrally generate video-models -o json
 返回按**驱动模式**分组：
 - `text_providers[]` — Text（单图/纯文）模式
 - `first_last_frame_providers[]` — 首尾帧模式
-- `frame_sequence_providers[]` — 序列帧模式
 - `subject_to_video_providers[]` — 参考主体模式
 
 每个模型包含：
 - `provider` → 传给 `--model` 参数
 - `label` — 模型显示名称
 - `duration_options[]` — 可用时长列表（秒）
+- `resolution_options[]` — 支持的分辨率列表（`{value, label}`，value 为 protobuf 枚举值），传给 `--resolution`
 - `can_upload_image/video/audio` — 支持的输入类型
 - `max_image_count/video_count/audio_count` — 各类型最大数量
 - `support_audio` — 是否支持音效
 
-### 3.2 四种驱动模式
+### 3.2 三种驱动模式
 
 #### Text 模式（默认）— 纯文生视频 / 单图驱动
 
@@ -155,17 +155,6 @@ workrally generate video \
 
 > 可以只传首帧或只传尾帧（至少一个）。
 
-#### FrameSequence 模式 — 序列帧驱动
-
-```bash
-workrally generate video \
-  --mode FrameSequence \
-  --prompt "连贯的动画过渡" \
-  --model <provider_id> \
-  --sequence-frames '[{"url":"https://frame1.png","timestamp":0},{"url":"https://frame2.png","timestamp":2}]' \
-  --poll
-```
-
 #### SubjectToVideo 模式 — 参考主体驱动
 
 ```bash
@@ -183,7 +172,9 @@ workrally generate video \
 |------|------|--------|------|
 | `--prompt` | ✅ | — | 动画描述 |
 | `--model` | ✅ | — | Provider ID（从 `video-models` 获取） |
-| `--mode` | — | `Text` | 驱动模式: Text/FirstLastFrame/FrameSequence/SubjectToVideo |
+| `--mode` | — | `Text` | 驱动模式: Text/FirstLastFrame/SubjectToVideo |
+| `--aspect-ratio` | — | `16:9` | 宽高比: 21:9 / 16:9 / 4:3 / 1:1 / 3:4 / 9:16 等 |
+| `--resolution` | — | 模型首个可用 | 分辨率枚举: 1=480P 2=540P 3=720P 4=1080P 5=1440P 6=2160P 7=4320P 8=360P（具体支持见 `video-models` 的 `resolution_options`） |
 | `--duration` | — | — | 视频时长（秒），可选值取决于模型 |
 | `--count` | — | `1` | 生成数量 1-4（后端一个任务生成 1 个视频，count>1 会并发发起 N 个独立任务并返回 task_ids 数组） |
 | `--enable-sound` | — | false | 生成音效（仅部分模型支持） |

@@ -6,7 +6,7 @@ description: >-
   Use when user asks to generate images, generate videos, manage projects,
   series, shots, upload files, download assets, manage materials, or
   interact with WorkRally platform via command line.
-version: 2.4.0
+version: 2.4.1
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -83,13 +83,14 @@ workrally download <asset_id> [-d ./output/]  # 下载素材 (自动处理访问
 workrally generate image-models               # 查看可用模型（必须先调用！）
 workrally generate image --prompt "描述" --model <model_id> [--aspect-ratio 16:9] [--input-images "url"] --poll
 
-# === AI 生视频 (4 种驱动模式) ===
+# === AI 生视频 (3 种驱动模式) ===
 workrally generate video-models               # 查看可用模型（必须先调用！）
 workrally generate video --prompt "描述" --model <provider_id> --poll                        # 纯文生视频（默认 Text 模式）
 workrally generate video --prompt "描述" --model <provider_id> --single-image-url "url" --poll  # 图生视频（Text 模式 + 参考图）
 workrally generate video --mode FirstLastFrame --prompt "描述" --model <provider_id> --first-frame-url "url" --poll  # 首尾帧
-# 其他模式: FrameSequence(--sequence-frames)  SubjectToVideo(--reference-assets)
-# --mode 默认 Text；通用选项: --duration <秒> --count 1-4 --enable-sound --poll
+# 其他模式: SubjectToVideo(--reference-assets)
+# --mode 默认 Text；通用选项: --aspect-ratio <比例> --resolution <枚举> --duration <秒> --count 1-4 --enable-sound --poll
+# --aspect-ratio 默认 16:9；--resolution 不传取模型首个可用(枚举见 video-models 的 resolution_options)
 
 # === 媒资库 (asset) — 项目级媒体文件池 ===
 workrally asset create --url <cdn_url> --project-id <id> -o json  # 入库（返回可访问 URL）
