@@ -10,7 +10,6 @@
 skill/
 ├── SKILL.md                ← Skill 入口（元数据 + 指令），ClawHub 解析此文件
 ├── LICENSE.txt             ← 许可证
-├── sync-to-repo.sh        ← 同步脚本
 └── references/             ← 深度参考文档，AI Agent 按需加载
     ├── ai-generation-guide.md      AI 生成指南
     ├── canvas-guide.md             无限画布操作指南
@@ -21,8 +20,9 @@ skill/
 
 ## 核心能力
 
-- **AI 生图** — Kontext 模型，支持多参考图
-- **AI 生视频** — 3 种驱动模式（文本/首尾帧/参考主体）
+- **AI 生图** — Kontext 模型，支持多参考图、可选推理质量
+- **AI 生视频** — 4 种驱动模式（文本/首尾帧/参考主体/视频编辑）
+- **提示词优化** — gen_content 文本任务，产物为 `output_text`
 - **无限画布** — Yjs 协同编辑，8 种节点类型，实时同步
 - **项目 & 媒资管理** — 项目 CRUD、素材上传入库、资产库树形管理
 - **通用透传** — 可调用 WorkRally MCP Server 全部工具

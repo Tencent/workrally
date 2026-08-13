@@ -50,6 +50,7 @@ workrally generate image --prompt "..." --model <从返回结果中获取的mode
 ```
 
 > 模型列表是**动态下发**的，不同环境的可用模型可能完全不同。
+> 生视频用 `generate video-models`；提示词优化用 `generate content-models`（不要硬编码 MiniMax H3）。
 
 ---
 
@@ -219,6 +220,53 @@ workrally role get "abc" -o json
 
 ---
 
+## ❌ 错误 11：生图 `--resolution 1/2` 当成视频枚举
+
+### 问题
+
+```bash
+# ❌ 错误：以为和 generate video 一样，2=540P
+workrally generate image --prompt "..." --model <id> --resolution 2
+# 生图里 2 仍是旧档位 4K，不是 540P
+```
+
+### 正确做法
+
+```bash
+workrally generate image-models -o json
+# 用该模型 resolution_options[].value（常见 4=1080P、5=1440P、6=2160P）
+workrally generate image --prompt "..." --model <id> --resolution 5
+```
+
+旧脚本继续传 `0/1/2` 仍然有效（映射为 1080P/1440P/2160P），新调用不要混用两套数字。
+
+---
+
+## ❌ 错误 12：提示词优化任务去找 output_assets
+
+### 问题
+
+```bash
+workrally generate optimize-prompt --prompt "延长5秒" --model <id> --poll
+# ❌ 在结果里找 output_assets / output_products —— 文本任务没有媒资产物
+```
+
+### 正确做法
+
+```bash
+# ✅ 先拿模型
+workrally generate content-models -o json
+# ✅ 轮询成功后读 output_text（output_type="text"）
+workrally generate optimize-prompt --prompt "将视频从尾帧延长5秒" --model <model_id> --video-url <url> --poll
+```
+
+| 任务 | output_type | 产物字段 |
+|------|-------------|----------|
+| 生图 / 生视频 | `assets` | `output_assets` |
+| 提示词优化 | `text` | `output_text` |
+
+---
+
 ## 常见判断速查表
 
 | 场景 | 需要什么 |
@@ -229,6 +277,7 @@ workrally role get "abc" -o json
 | "把已有图片放到画布上" | `asset search` → `canvas build-draft` |
 | "生成4张图片" | `generate image --count 4 --poll` |
 | "查看生成进度" | `generate task <task_id> --poll` |
+| "优化视频提示词" | `generate content-models` → `generate optimize-prompt --poll`（读 `output_text`） |
 | "创建一个画板放三张图" | `canvas build-draft` (一次传画板+3个子节点) |
 | "删除画布上的某个节点" | `canvas build-draft --delete-node-ids "node_id"` |
 | "清空整个画布" | `canvas build-draft --nodes '[]' --mode overwrite` |

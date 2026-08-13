@@ -2,11 +2,11 @@
 name: workrally
 description: >-
   WorkRally CLI (workrally) — 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集。
-  支持 AI 生图、AI 生视频、项目/剧集/场次/分镜的完整 CRUD、资产库、媒资管理、无限画布、文件上传下载等。
-  Use when user asks to generate images, generate videos, manage projects,
-  series, shots, upload files, download assets, manage materials, or
+  支持 AI 生图、AI 生视频、视频提示词优化、AI 生音频、项目/剧集/场次/分镜的完整 CRUD、资产库、媒资管理、无限画布、文件上传下载等。
+  Use when user asks to generate images, generate videos, optimize video prompts,
+  manage projects, series, shots, upload files, download assets, manage materials, or
   interact with WorkRally platform via command line.
-version: 2.4.1
+version: 2.6.1
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -54,25 +54,30 @@ workrally series create --project-id <id> --name "第一集"                # �
 workrally series update <series_id> --project-id <id> --name "新名称"    # 更新剧集
 workrally series delete <ids...>                                        # 软删除（→回收站）
 
-# === 场次（shot/story）— 短番制作核心单元 ===
-# --- CRUD 五件套 ---
-workrally shot list --series-id <id>                                              # 场次列表
-workrally shot get <story_id>                                                     # 场次详情
-workrally shot create --series-id <id> --json-list '[{"image_prompt":"..."}]'     # 批量创建
-workrally shot update <story_id> --image-prompt "..." --animation-prompt "..."    # 单条更新
-workrally shot update <story_id> --story-num "EP01-SC01"                          # 单条改名（story_num）
-workrally shot update --batch '[{"story_id":"...","image_prompt":"..."}]'         # 批量更新
-workrally shot delete <story_ids...>                                              # 软删除（→回收站）
-# --- 业务语义糖（CRUD 之外）---
-workrally shot sort --series-id <id> --order id1,id2,id3                                # 重排
-workrally shot image-models                                                              # ⭐ 场次专用图片模型（≠ canvas）
-workrally shot video-models                                                              # ⭐ 场次专用视频模型（固定 mode=9）
-workrally shot set-model [--story-ids id1,id2] --video-provider 1 --duration 5 --aspect-ratio 16:9   # 配置视频模型（推荐）
-workrally shot set-model [--story-ids id1,id2] --image-model <en_name> --aspect-ratio 16:9          # 配置图片模型
-workrally shot bind --story-id <id> --type image --assets '[{...}]'                     # 绑定参考资产
-workrally shot recognize --project-id <id> --series-id <id> [--scope all|project]       # 识别角色
-workrally shot generate-image --story-ids id1,id2 [--count N]                           # 仅提交；无 --poll/--model；查结果 shot get-result --type image [--watch]
-workrally shot generate-video --story-ids id1,id2 [--count N]                          # 同上；--type video。无 --model/duration/ratio/--poll
+# === 场次（shotlist）— 短番制作核心单元（⭐ 推荐使用新版；含音频生成）===
+# --- CRUD ---
+workrally shotlist list --series-id <id>                                              # 场次列表
+workrally shotlist get <story_id>                                                     # 场次详情
+workrally shotlist create --series-id <id> --json-list '[{"image_prompt":"..."}]'     # 批量创建
+workrally shotlist update <story_id> --image-prompt "..." --animation-prompt "..."    # 单条更新
+workrally shotlist update --batch '[{"story_id":"...","image_prompt":"..."}]'         # 批量更新
+workrally shotlist delete <story_ids...>                                              # 软删除（→回收站）
+workrally shotlist sort --series-id <id> --order id1,id2,id3                           # 重排
+# --- 模型 & 配置（写入 extra.gen_config）---
+workrally shotlist models --category image,video,audio                                # ⭐ 统一模型列表（GetTaskModelList）
+workrally shotlist set-model [--story-ids id1,id2] --image-model <id> --image-aspect-ratio 16:9        # 配置图片
+workrally shotlist set-model [--story-ids id1,id2] --video-mode SubjectToVideo --video-model <id> --duration 5 --video-aspect-ratio 16:9  # 配置视频
+workrally shotlist set-model [--story-ids id1,id2] --audio-model <id>                  # 配置音频
+workrally shotlist bind --story-id <id> --type image --assets '[{...}]'               # 绑定参考（audio→独立字段）
+workrally shotlist recognize --series-id <id> --project-id <id> [--scope both] [--match-rule symbol_text]  # 识别（含音频路）
+# --- 生成（仅提交；查结果用 get-result [--watch]）---
+workrally shotlist generate-image --project-id <id> --story-ids id1,id2 [--count N]    # 生图 → get-result --type image
+workrally shotlist generate-video --project-id <id> --story-ids id1,id2                # 生视频 → get-result --type video
+workrally shotlist generate-audio --project-id <id> --story-ids id1,id2 [--count N]    # ⭐ 生音频 → get-result --type audio
+workrally shotlist get-result --story-id <id> --type image|video|audio [--watch]       # 查进度与产物
+
+# === 场次（shot）— 旧版兼容命令（仍可用，不再新增能力；详见 shot-guide.md legacy）===
+# 老流程/存量脚本可继续用 `workrally shot ...`（配置走扁平字段、无音频生成）。新项目请用上面的 shotlist。
 
 
 # === 上传 / 下载 ===
@@ -81,16 +86,26 @@ workrally download <asset_id> [-d ./output/]  # 下载素材 (自动处理访问
 
 # === AI 生图 ===
 workrally generate image-models               # 查看可用模型（必须先调用！）
-workrally generate image --prompt "描述" --model <model_id> [--aspect-ratio 16:9] [--input-images "url"] --poll
+workrally generate image --prompt "描述" --model <model_id> [--aspect-ratio 16:9] [--resolution 5] [--quality high] [--input-images "url"] --poll
+# --resolution 推荐用 image-models 的 resolution_options[].value（常见 4=1080P/5=1440P/6=2160P）；旧档位 0/1/2 仍可用
+# --quality 仅当 image-models 该模型返回了 infer_quality_options 时才传（取值用其中的 value）
+# --extra-params '{"midjourney":{"stylize":100}}'  扩展参数 JSON 对象；CLI 传 extraParams，服务端写成 extra_params
 
-# === AI 生视频 (3 种驱动模式) ===
+# === AI 生视频 (4 种驱动模式) ===
 workrally generate video-models               # 查看可用模型（必须先调用！）
 workrally generate video --prompt "描述" --model <provider_id> --poll                        # 纯文生视频（默认 Text 模式）
 workrally generate video --prompt "描述" --model <provider_id> --single-image-url "url" --poll  # 图生视频（Text 模式 + 参考图）
 workrally generate video --mode FirstLastFrame --prompt "描述" --model <provider_id> --first-frame-url "url" --poll  # 首尾帧
+workrally generate video --mode VideoEdit --prompt "描述" --model <id> --origin-video <asset_id> --poll  # 视频编辑
 # 其他模式: SubjectToVideo(--reference-assets)
-# --mode 默认 Text；通用选项: --aspect-ratio <比例> --resolution <枚举> --duration <秒> --count 1-4 --enable-sound --poll
+# --mode 默认 Text；通用选项: --aspect-ratio <比例> --resolution <枚举> --duration <秒> --count 1-4 --poll
+# 音效默认开启（与前端一致）；关闭用 --no-enable-sound。VideoEdit 不要传音效相关参数
 # --aspect-ratio 默认 16:9；--resolution 不传取模型首个可用(枚举见 video-models 的 resolution_options)
+
+# === 视频提示词优化（gen_content，产物是文本不是视频）===
+workrally generate content-models             # 查看可用模型（必须先调用！严禁硬编码 MiniMax H3 等 ID）
+workrally generate optimize-prompt --prompt "将视频从尾帧延长5秒" --model <model_id> [--video-url <url>] --poll
+# 成功后从 generate task 的 output_text 读取优化后的提示词（output_type="text"），不要找 output_assets
 
 # === 媒资库 (asset) — 项目级媒体文件池 ===
 workrally asset create --url <cdn_url> --project-id <id> -o json  # 入库（返回可访问 URL）
@@ -115,6 +130,8 @@ workrally canvas build-draft <canvas_id> -n '[...]' --mode overwrite  # 全量�
 
 # === 任务查询 ===
 workrally generate task <task_id> [--poll]    # 查询/轮询生成任务状态
+# 生图/生视频成功：output_type="assets"，产物在 output_assets
+# 提示词优化成功：output_type="text"，产物在 output_text（不要找 output_assets / output_products）
 
 # === 通用透传（调用任意 MCP 工具）===
 workrally tools list                          # 列出所有工具
@@ -147,14 +164,42 @@ workrally material add --json-list '[{"material_id":"<asset_id>","material_name"
 >
 > **步骤 3 由 Agent 判断**："上传文件" → 两步 | "上传到角色/道具/场景/文件夹" → 三步 | "媒资素材添加到资产库" → 仅步骤 3
 
-## 关键工作流：场次创作
+## 关键工作流：场次创作（推荐 `shotlist`）
 
+**概念层级**：项目 (project) → 剧集 (series) → 场次 (shot/story)。一个场次含 图片 / 视频 / **音频** 三条生成线，核心由提示词承载：`image_prompt`（图片）、`animation_prompt`（视频）、`extra.audio_prompt`（音频，音色用 `<音色名>` 引用）。生成配置聚合在 `extra.gen_config.{image,video,audio}`。
 
+```bash
+# 1) 建剧集 + 批量创建场次（按用户意图填提示词）
+workrally series create --project-id <pid> --name "第一集" -o json
+workrally shotlist create --series-id <sid> --json-list '[{"image_prompt":"古风庭院","animation_prompt":"镜头缓推"}]'
+
+# 2) 识别角色资产（三路：image/animation/audio；音色用 <> 时加 --match-rule symbol_text）
+workrally shotlist recognize --series-id <sid> --project-id <pid>
+
+# 3) 选模型 → 写配置（模型 id 来自 shotlist models，勿硬编码）
+workrally shotlist models --category image,video,audio -o json
+workrally shotlist set-model --series-id <sid> --image-model <id> --image-aspect-ratio 16:9 \
+  --video-mode SubjectToVideo --video-model <id> --duration 5 --video-aspect-ratio 16:9 --audio-model <id>
+
+# 4) 生成（多场次传 --story-ids id1,id2,id3；均需 --project-id）
+workrally shotlist generate-image --project-id <pid> --story-ids <ids>
+workrally shotlist generate-video --project-id <pid> --story-ids <ids>
+workrally shotlist generate-audio --project-id <pid> --story-ids <ids>   # ⭐ 新增音频生成
+
+# 5) 查结果（image/video/audio 三条独立进度，分别 watch）
+workrally shotlist get-result --story-id <sid> --type image --watch
+workrally shotlist get-result --story-id <sid> --type video --watch
+workrally shotlist get-result --story-id <sid> --type audio --watch
+```
+
+> **生成前先确认配置**：用 `shotlist get <id>` 检查 `extra.gen_config` 是否已设对应模型；缺则回到步骤 3。生成只返回提交结果，不返回可轮询的画布 task_id，进度一律用 `shotlist get-result`。
+>
+> **shot vs shotlist**：新版 `shotlist` 走任务通道 + `gen_config` + 音频；旧版 `shot` 走 `GenerateStoryAnimation` + 扁平字段、无音频。两者配置不互通，**同一剧集不要混用**。旧 `shot` 命令仅作兼容保留。
 
 ## ⚠️ 重要规则
 
 1. **前端链接必须用 `workrally url build` 生成**，严禁自行拼接 URL
-2. **模型 ID 必须动态获取**：`image-models` / `video-models`，严禁猜测或硬编码
+2. **模型 ID 必须动态获取**：`image-models` / `video-models` / `content-models`，严禁猜测或硬编码（含 MiniMax H3 等）
 3. **`canvas` ≠ `project`**：画布用 `canvas`，项目用 `project`，两者 ID 不能互换
 4. **`build-draft` 实时协同**：写入后所有在线用户立即看到变更，默认增量合并（只传变更节点），支持多人并发安全操作
 5. **`build-draft` 节点校验**：8种节点类型各有必填字段，详见 [`canvas-guide.md`](references/canvas-guide.md)
@@ -169,11 +214,12 @@ workrally material add --json-list '[{"material_id":"<asset_id>","material_name"
 
 | 文档 | 内容 |
 |------|------|
-| [`references/shot-guide.md`](references/shot-guide.md) | 场次操作 — CRUD/排序、提示词、模型、生成与结果；**§9** 场次创作工作流与专项规则（原 SKILL 正文迁入） |
+| [`references/shotlist-guide.md`](references/shotlist-guide.md) | ⭐ **场次·新版（推荐）** — CRUD、gen_config 模型配置、生图/生视频/**生音频**、结果查询、符号识别 |
+| [`references/shot-guide.md`](references/shot-guide.md) | 场次·旧版（**legacy 兼容**）— CRUD/排序、扁平字段模型、生图/生视频；新项目请改用 shotlist-guide |
 | [`references/canvas-guide.md`](references/canvas-guide.md) | 无限画布操作 — 8种节点类型、画板嵌套、build-draft 增量/覆盖模式、协同编辑 |
 | [`references/upload-and-assets-guide.md`](references/upload-and-assets-guide.md) | 上传与素材管理 — 三步上传流程、媒资库 vs 资产库、树形目录操作 |
-| [`references/ai-generation-guide.md`](references/ai-generation-guide.md) | AI 生成 — Kontext 生图、4种视频驱动模式、模型动态获取、任务轮询 |
-| [`references/common-pitfalls.md`](references/common-pitfalls.md) | 常见易错点 — 项目/画布混淆、模型硬编码、上传缺步骤等10类典型错误 |
+| [`references/ai-generation-guide.md`](references/ai-generation-guide.md) | AI 生成 — Kontext 生图、4种视频驱动模式、提示词优化、模型动态获取、任务轮询 |
+| [`references/common-pitfalls.md`](references/common-pitfalls.md) | 常见易错点 — 项目/画布混淆、模型硬编码、上传缺步骤等典型错误 |
 
 > 遇到画布、上传、AI生成相关的复杂操作时，请优先查阅对应的参考文档。
 

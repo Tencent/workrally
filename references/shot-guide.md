@@ -1,4 +1,8 @@
-# 场次操作指南
+# 场次操作指南（旧版 / legacy）
+
+> ⚠️ **本文档为旧版场次命令（`workrally shot`）的兼容说明。新项目请改用 [`shotlist-guide.md`](./shotlist-guide.md)（新版场次，含音频生成）。**
+> 旧 `shot` 命令仍可用但不再新增能力；其配置走扁平字段（`animation_model` / `image_model` / `generate_width` 等），
+> 与新版 `shotlist`（配置存 `extra.gen_config`、走任务通道）**不互通，同一剧集请勿混用**。
 
 本文档帮助 AI Agent 通过 `workrally shot` / `workrally series` 命令完成场次的全生命周期管理。
 
