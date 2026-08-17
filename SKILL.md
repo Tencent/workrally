@@ -6,7 +6,7 @@ description: >-
   Use when user asks to generate images, generate videos, optimize video prompts,
   manage projects, series, shots, upload files, download assets, manage materials, or
   interact with WorkRally platform via command line.
-version: 2.6.1
+version: 2.6.2
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -104,7 +104,9 @@ workrally generate video --mode VideoEdit --prompt "描述" --model <id> --origi
 
 # === 视频提示词优化（gen_content，产物是文本不是视频）===
 workrally generate content-models             # 查看可用模型（必须先调用！严禁硬编码 MiniMax H3 等 ID）
-workrally generate optimize-prompt --prompt "将视频从尾帧延长5秒" --model <model_id> [--video-url <url>] --poll
+workrally generate optimize-prompt --prompt "将视频从尾帧延长5秒" --model <model_id> \
+  [--video-url <url>] [--first-frame-url <url>] [--last-frame-url <url>] [--reference-image-urls "url1,url2"] --poll
+# 图片语义写在 image_info.type：first_frame / last_frame / reference_image（不是 R2V 顶层字段）
 # 成功后从 generate task 的 output_text 读取优化后的提示词（output_type="text"），不要找 output_assets
 
 # === 媒资库 (asset) — 项目级媒体文件池 ===

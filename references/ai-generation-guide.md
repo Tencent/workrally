@@ -238,15 +238,33 @@ workrally generate optimize-prompt \
   --prompt "将视频从尾帧延长5秒" \
   --model <model_id> \
   --video-url <参考视频CDN_URL> \
+  --first-frame-url <首帧CDN_URL> \
+  --last-frame-url <尾帧CDN_URL> \
+  --reference-image-urls "<参考图1>,<参考图2>" \
   --poll
 ```
+
+媒体写入 `messages[0].contents`，**不是**生视频那套 `ref_images` / `frames`。图片语义在 `image_info.type`：
+
+| CLI | graph_input |
+|-----|-------------|
+| `--video-url` | `contents.type=2` + `video_info.url` |
+| `--first-frame-url` | `contents.type=1` + `image_info.type="first_frame"` |
+| `--last-frame-url` | `contents.type=1` + `image_info.type="last_frame"` |
+| `--reference-image-urls` | 每张 `contents.type=1` + `image_info.type="reference_image"` |
+| `--image-url` | 兼容旧参数，等价于一张 `reference_image` |
+
+contents 顺序：文本 → 视频 → 首帧 → 尾帧 → 参考图。
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
 | `--prompt` | ✅ | 待优化的自然语言指令 |
 | `--model` | ✅ | 来自 `content-models` 的 `model_id` |
 | `--video-url` | — | 参考视频 CDN URL（官方媒资） |
-| `--image-url` | — | 参考图片 CDN URL |
+| `--first-frame-url` | — | 首帧图片 CDN URL |
+| `--last-frame-url` | — | 尾帧图片 CDN URL |
+| `--reference-image-urls` | — | 参考图 CDN URL，逗号分隔，可多张 |
+| `--image-url` | — | 单张参考图（兼容旧参数） |
 | `--aspect-ratio` | — | 如 `16:9`（写入比例分量，不是像素） |
 | `--resolution` | — | **protobuf 枚举**（1=480P…），与 `generate image/video` 相同。生图另兼容旧档位 0/1/2 |
 | `--duration` | — | 目标时长秒数，不传服务端默认 5 |
