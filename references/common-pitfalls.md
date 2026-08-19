@@ -258,7 +258,8 @@ workrally generate optimize-prompt --prompt "延长5秒" --model <id> --poll
 workrally generate content-models -o json
 # ✅ 轮询成功后读 output_text（output_type="text"）
 workrally generate optimize-prompt --prompt "将视频从尾帧延长5秒" --model <model_id> \
-  --video-url <url> --first-frame-url <url> --last-frame-url <url> --reference-image-urls "url1,url2" --poll
+  --video-url <url> --first-frame-url <url> --last-frame-url <url> \
+  --reference-image-urls "url1,url2" --audio-url <url> --poll
 ```
 
 | 任务 | output_type | 产物字段 |

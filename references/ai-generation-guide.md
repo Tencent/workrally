@@ -241,10 +241,11 @@ workrally generate optimize-prompt \
   --first-frame-url <首帧CDN_URL> \
   --last-frame-url <尾帧CDN_URL> \
   --reference-image-urls "<参考图1>,<参考图2>" \
+  --audio-url <参考音频CDN_URL> \
   --poll
 ```
 
-媒体写入 `messages[0].contents`，**不是**生视频那套 `ref_images` / `frames`。图片语义在 `image_info.type`：
+媒体写入 `messages[0].contents`，**不是**生视频那套 `ref_images` / `frames`。图片语义在 `image_info.type`，音频在 `audio_info.url`：
 
 | CLI | graph_input |
 |-----|-------------|
@@ -253,8 +254,9 @@ workrally generate optimize-prompt \
 | `--last-frame-url` | `contents.type=1` + `image_info.type="last_frame"` |
 | `--reference-image-urls` | 每张 `contents.type=1` + `image_info.type="reference_image"` |
 | `--image-url` | 兼容旧参数，等价于一张 `reference_image` |
+| `--audio-url` / `--audio-urls` | 每条 `contents.type=3` + `audio_info.url` |
 
-contents 顺序：文本 → 视频 → 首帧 → 尾帧 → 参考图。
+contents 顺序：文本 → 视频 → 首帧 → 尾帧 → 参考图 → 音频。
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
@@ -265,9 +267,14 @@ contents 顺序：文本 → 视频 → 首帧 → 尾帧 → 参考图。
 | `--last-frame-url` | — | 尾帧图片 CDN URL |
 | `--reference-image-urls` | — | 参考图 CDN URL，逗号分隔，可多张 |
 | `--image-url` | — | 单张参考图（兼容旧参数） |
+| `--audio-url` | — | 参考音频 CDN URL |
+| `--audio-urls` | — | 参考音频 CDN URL，逗号分隔，可多条 |
 | `--aspect-ratio` | — | 如 `16:9`（写入比例分量，不是像素） |
 | `--resolution` | — | **protobuf 枚举**（1=480P…），与 `generate image/video` 相同。生图另兼容旧档位 0/1/2 |
 | `--duration` | — | 目标时长秒数，不传服务端默认 5 |
+| `--temperature` | — | 采样温度（可选） |
+| `--seed` | — | 随机种子（可选） |
+| `--extra-params` | — | 扩展参数 JSON 对象 |
 | `--short-series-project-id` | — | 短番项目 ID |
 | `--name` | — | 任务名称 |
 | `--poll` | — | 完成后从结果读取 `output_text` |
