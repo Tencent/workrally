@@ -1,14 +1,11 @@
-# 场次操作指南（新版 · shotlist，推荐）
+# 场次操作指南（shotlist · 对齐 Web /shot 批量制作）
 
-本文档帮助 AI Agent 通过 `workrally shotlist` / `workrally series` 命令完成场次的全生命周期管理。
-`shotlist` 是重构后的新版场次能力线（对齐前端新版场次页），相比旧版 `shot`：
+本文档帮助 AI Agent 通过 `workrally shotlist` / `workrally series` 完成场次全生命周期管理，对应前端 `/shot`（`anime-new-shot`）批量制作能力：
 
-- **生成走统一任务通道**（`TvShortSeriesTask.SubmitTask/BatchSubmitTask`）；
-- **配置聚合在 `shot.extra.gen_config.{image,video,audio}`**（旧版是散落的扁平字段）；
-- **模型统一来自 `shotlist models`（GetTaskModelList，画布同源）**；
-- **新增音频生成**（`generate-audio`）+ 结果查询支持 `--type audio`。
-
-> 旧 `workrally shot` 命令仍保留（兼容），但配置与 `shotlist` 不互通，**同一剧集不要混用**。
+- **生成走统一任务通道**（`TvShortSeriesTask.SubmitTask/BatchSubmitTask`）
+- **配置聚合在 `shot.extra.gen_config.{image,video,audio}`**
+- **模型统一来自 `shotlist models`（GetTaskModelList，画布同源）**
+- **支持生图 / 生视频 / 生音频**，结果查询 `--type image|video|audio`
 
 ---
 
@@ -69,7 +66,7 @@ done
 
 ## 3. 模型与生成配置（`extra.gen_config`）
 
-> ⚠️ 模型来源与旧版不同：`shotlist` 统一用 `shotlist models`（GetTaskModelList），返回的 `id` 直接写入 `gen_config`；
+> ⚠️ 模型来自 `shotlist models`（GetTaskModelList，画布同源），返回的 `id` 直接写入 `gen_config`；
 > 旧 `shot image-models`（Kontext en_name）/ `shot video-models`（Wuji provider）**不适用于 shotlist**。
 
 ```bash
@@ -117,7 +114,7 @@ workrally shotlist recognize --series-id <sid> --recognize-scope all
 - `--recognize-scope`：`project`（默认，仅本项目）/ `all`（全资产库）。
 - 落库：图片/视频路写 `role_data_json` + `video_role_data_json`（统一）+ prompt 占位 + `extra.*_prompt_json`；音频路写 `extra.audio_role_data_json` + `extra.audio_prompt` + `extra.audio_prompt_json`。
 
-> ⚠️ 注意与旧版 `shot recognize --scope all|project` 的语义区别：旧版 `--scope` 是资产库范围；新版拆成 `--scope`（识别路）+ `--recognize-scope`（资产库范围）。
+> ⚠️ `--scope` 控制识别路（image/animation/audio/both），`--recognize-scope` 控制资产库范围（project/all），二者勿混用。
 
 ---
 

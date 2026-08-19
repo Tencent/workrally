@@ -14,7 +14,7 @@ skill/
     ├── ai-generation-guide.md      AI 生成指南
     ├── canvas-guide.md             无限画布操作指南
     ├── common-pitfalls.md          常见易错点
-    ├── shot-guide.md               分镜指南
+    ├── shotlist-guide.md           场次批量制作（对齐 Web /shot）
     └── upload-and-assets-guide.md  上传与素材管理指南
 ```
 

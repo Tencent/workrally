@@ -6,7 +6,7 @@ description: >-
   Use when user asks to generate images, generate videos, optimize video prompts,
   manage projects, series, shots, upload files, download assets, manage materials, or
   interact with WorkRally platform via command line.
-version: 2.6.3
+version: 2.7.0
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -54,7 +54,7 @@ workrally series create --project-id <id> --name "第一集"                # �
 workrally series update <series_id> --project-id <id> --name "新名称"    # 更新剧集
 workrally series delete <ids...>                                        # 软删除（→回收站）
 
-# === 场次（shotlist）— 短番制作核心单元（⭐ 推荐使用新版；含音频生成）===
+# === 场次（shotlist）— 对齐 Web /shot 批量制作（含音频生成）===
 # --- CRUD ---
 workrally shotlist list --series-id <id>                                              # 场次列表
 workrally shotlist get <story_id>                                                     # 场次详情
@@ -75,10 +75,6 @@ workrally shotlist generate-image --project-id <id> --story-ids id1,id2 [--count
 workrally shotlist generate-video --project-id <id> --story-ids id1,id2                # 生视频 → get-result --type video
 workrally shotlist generate-audio --project-id <id> --story-ids id1,id2 [--count N]    # ⭐ 生音频 → get-result --type audio
 workrally shotlist get-result --story-id <id> --type image|video|audio [--watch]       # 查进度与产物
-
-# === 场次（shot）— 旧版兼容命令（仍可用，不再新增能力；详见 shot-guide.md legacy）===
-# 老流程/存量脚本可继续用 `workrally shot ...`（配置走扁平字段、无音频生成）。新项目请用上面的 shotlist。
-
 
 # === 上传 / 下载 ===
 workrally upload ./file.png -o json           # 上传文件 (COS SDK 直传)
@@ -167,7 +163,7 @@ workrally material add --json-list '[{"material_id":"<asset_id>","material_name"
 >
 > **步骤 3 由 Agent 判断**："上传文件" → 两步 | "上传到角色/道具/场景/文件夹" → 三步 | "媒资素材添加到资产库" → 仅步骤 3
 
-## 关键工作流：场次创作（推荐 `shotlist`）
+## 关键工作流：场次创作（`shotlist`，对齐 Web /shot）
 
 **概念层级**：项目 (project) → 剧集 (series) → 场次 (shot/story)。一个场次含 图片 / 视频 / **音频** 三条生成线，核心由提示词承载：`image_prompt`（图片）、`animation_prompt`（视频）、`extra.audio_prompt`（音频，音色用 `<音色名>` 引用）。生成配置聚合在 `extra.gen_config.{image,video,audio}`。
 
@@ -187,7 +183,7 @@ workrally shotlist set-model --series-id <sid> --image-model <id> --image-aspect
 # 4) 生成（多场次传 --story-ids id1,id2,id3；均需 --project-id）
 workrally shotlist generate-image --project-id <pid> --story-ids <ids>
 workrally shotlist generate-video --project-id <pid> --story-ids <ids>
-workrally shotlist generate-audio --project-id <pid> --story-ids <ids>   # ⭐ 新增音频生成
+workrally shotlist generate-audio --project-id <pid> --story-ids <ids>
 
 # 5) 查结果（image/video/audio 三条独立进度，分别 watch）
 workrally shotlist get-result --story-id <sid> --type image --watch
@@ -196,8 +192,6 @@ workrally shotlist get-result --story-id <sid> --type audio --watch
 ```
 
 > **生成前先确认配置**：用 `shotlist get <id>` 检查 `extra.gen_config` 是否已设对应模型；缺则回到步骤 3。生成只返回提交结果，不返回可轮询的画布 task_id，进度一律用 `shotlist get-result`。
->
-> **shot vs shotlist**：新版 `shotlist` 走任务通道 + `gen_config` + 音频；旧版 `shot` 走 `GenerateStoryAnimation` + 扁平字段、无音频。两者配置不互通，**同一剧集不要混用**。旧 `shot` 命令仅作兼容保留。
 
 ## ⚠️ 重要规则
 
@@ -217,8 +211,7 @@ workrally shotlist get-result --story-id <sid> --type audio --watch
 
 | 文档 | 内容 |
 |------|------|
-| [`references/shotlist-guide.md`](references/shotlist-guide.md) | ⭐ **场次·新版（推荐）** — CRUD、gen_config 模型配置、生图/生视频/**生音频**、结果查询、符号识别 |
-| [`references/shot-guide.md`](references/shot-guide.md) | 场次·旧版（**legacy 兼容**）— CRUD/排序、扁平字段模型、生图/生视频；新项目请改用 shotlist-guide |
+| [`references/shotlist-guide.md`](references/shotlist-guide.md) | ⭐ **场次批量制作**（对齐 Web `/shot`）— CRUD、gen_config、生图/生视频/**生音频**、结果查询、符号识别 |
 | [`references/canvas-guide.md`](references/canvas-guide.md) | 无限画布操作 — 8种节点类型、画板嵌套、build-draft 增量/覆盖模式、协同编辑 |
 | [`references/upload-and-assets-guide.md`](references/upload-and-assets-guide.md) | 上传与素材管理 — 三步上传流程、媒资库 vs 资产库、树形目录操作 |
 | [`references/ai-generation-guide.md`](references/ai-generation-guide.md) | AI 生成 — Kontext 生图、4种视频驱动模式、提示词优化、模型动态获取、任务轮询 |
