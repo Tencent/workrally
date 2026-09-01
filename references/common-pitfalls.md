@@ -50,7 +50,7 @@ workrally generate image --prompt "..." --model <从返回结果中获取的mode
 ```
 
 > 模型列表是**动态下发**的，不同环境的可用模型可能完全不同。
-> 生视频用 `generate video-models`；提示词优化用 `generate content-models`（不要硬编码 MiniMax H3）。
+> 生视频用 `generate video-models`；生音频/音乐用 `generate audio-models`；提示词优化用 `generate content-models`（不要硬编码 MiniMax H3）。混元 3D 用 `generate 3d --asset-id`，不要查 3d-models。
 
 ---
 

@@ -80,13 +80,14 @@ workrally shotlist models --category image,video,videoSingle,videoFrame,audio -o
 | 维度 | flags | 写入字段 |
 |------|-------|---------|
 | 图片 | `--image-model` / `--image-aspect-ratio` / `--image-resolution` / `--image-count` | `gen_config.image` |
-| 视频 | `--video-mode`(SubjectToVideo\|Text\|FirstLastFrame) + `--video-model`\|`--text-model`\|`--first-last-model` / `--video-aspect-ratio` / `--duration` / `--video-resolution` / `--enable-sound` | `gen_config.video` |
+| 视频 | `--video-mode`(SubjectToVideo\|Text\|FirstLastFrame\|SmartEdit) + 对应模型；支持 `--no-enable-sound` / `--erase-subtitles` | `gen_config.video` |
 | 音频 | `--audio-model` / `--audio-count` | `gen_config.audio` |
 
-**视频三种模式**（模型字段互不通用，切模式要用对应类别的模型）：
+**视频四种模式**（模型字段互不通用，切模式要用对应类别的模型）：
 - `SubjectToVideo`（参考主体，默认）：模型写 `model`；资产走 `video_role_data_json`。
 - `Text`（单图）：模型写 `textModel`；资产走 `gen_config.video.singleAssets`。
 - `FirstLastFrame`（首尾帧）：模型写 `firstLastModel`；资产走 `gen_config.video.firstLastAssets`。
+- `SmartEdit`（智能编辑）：模型写 `smartEditModel`；需 `smartEditSourceVideo`（含 asset_id/width/height/duration），提示词可空。
 
 ---
 
@@ -128,6 +129,8 @@ workrally shotlist recognize --series-id <sid> --recognize-scope all
 workrally shotlist generate-image --project-id <pid> --story-ids st_1,st_2 --count 2
 # 生视频（按各场次 gen_config.video.mode 分支，每场次 1 条）
 workrally shotlist generate-video --project-id <pid> --story-ids st_1,st_2
+# 对已选定视频超分（model 来自 models --category upscale）
+workrally shotlist upscale-video --project-id <pid> --story-ids st_1,st_2 --model <id> --scale 2
 # 生音频（reference_to_audio，每场次 count 条）
 workrally shotlist generate-audio --project-id <pid> --story-ids st_1,st_2
 

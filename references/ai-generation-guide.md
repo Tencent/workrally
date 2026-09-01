@@ -1,6 +1,6 @@
-# AI 生成指南（图片 & 视频）
+# AI 生成指南（图片 / 视频 / 音频 / 音乐 / 3D）
 
-本文档帮助 AI Agent 正确使用 WorkRally 的 AI 图片/视频生成能力。
+本文档帮助 AI Agent 正确使用 WorkRally 的 AI 图片、视频、音频、音乐与混元 3D 模型生成能力。
 
 ---
 
@@ -20,6 +20,9 @@ workrally generate video-models -o json
 
 # 提示词优化前必须先获取 gen_content 模型列表
 workrally generate content-models -o json
+
+# 画布生音频/音乐前必须先获取模型
+workrally generate audio-models -o json
 ```
 
 ---
@@ -121,6 +124,9 @@ workrally generate video-models -o json
 - `first_last_frame_providers[]` — 首尾帧模式
 - `subject_to_video_providers[]` — 参考主体模式
 - `video_edit_providers[]` — 视频编辑模式（VideoEdit）
+- `smart_edit_providers[]` — 智能编辑模式（SmartEdit）
+
+参考主体模型还可能返回 `extend_duration_range`、`extend_video_max_duration`、文档限制与 `support_erase_subtitles`；只在配置明确支持时使用。
 
 每个模型包含：
 - `provider` → 传给 `--model` 参数
@@ -192,14 +198,16 @@ workrally generate video \
 
 | 参数 | 必填 | 默认值 | 说明 |
 |------|------|--------|------|
-| `--prompt` | ✅ | — | 动画描述 |
+| `--prompt` | 通常必填 | — | SmartEdit/ExtendVideo 可省略 |
 | `--model` | ✅ | — | Provider ID（从 `video-models` 获取） |
-| `--mode` | — | `Text` | 驱动模式: Text/FirstLastFrame/SubjectToVideo/VideoEdit |
+| `--mode` | — | `Text` | Text/FirstLastFrame/SubjectToVideo/VideoEdit/SmartEdit/ExtendVideo |
 | `--aspect-ratio` | — | `16:9` | 宽高比: 21:9 / 16:9 / 4:3 / 1:1 / 3:4 / 9:16 等 |
 | `--resolution` | — | 模型首个可用 | 分辨率枚举: 1=480P 2=540P 3=720P 4=1080P 5=1440P 6=2160P 7=4320P 8=360P（具体支持见 `video-models` 的 `resolution_options`） |
 | `--duration` | — | — | 视频时长（秒），可选值取决于模型 |
 | `--count` | — | `1` | 生成数量 1-4（后端一个任务生成 1 个视频，count>1 会并发发起 N 个独立任务并返回 task_ids 数组） |
 | `--enable-sound` | — | 服务端默认 true | 生成音效（仅部分模型支持）。**不传则默认开启**（与前端一致）；关闭请用 `--no-enable-sound`。VideoEdit 不要传 |
+
+SmartEdit 需传 `--source-video/--source-width/--source-height/--source-duration`；`source-duration` 单位毫秒。ExtendVideo 的 `--duration` 表示延长秒数。Wan 3.0 文档参考仅 SubjectToVideo 支持，`--reference-assets` 中传 `{"type":"file","asset_id":"...","name":"brief.pdf"}`。
 | `--no-enable-sound` | — | — | 显式关闭音效（`enable_sound=false`） |
 | `--extra-params` | — | — | JSON 对象。CLI 传 MCP `extraParams`；服务端写入 `graph_input.extra_params` 且将每个 value 序列化为字符串 |
 | `--project-id` | — | — | 画布 ID（传入后自动创建占位节点） |
@@ -219,6 +227,45 @@ workrally generate video \
   --project-id <画布ID> \
   --poll
 ```
+
+---
+
+## 3.5 画布音频 / 音乐
+
+对齐 Web 无限画布「生成音频」：`mode=audio`（台词/音效）或 `music`（文生音乐）。
+
+```bash
+workrally generate audio-models -o json
+# 返回 audio_models[] / music_models[]，is_minimax=true 的音频模型不要传 --ref-audios
+
+# 音频
+workrally generate audio --prompt "雨声和脚步" --model <audio_model_id> --poll
+
+# MiniMax：先读取 audio_models[].fields，再传动态字段
+workrally generate audio --prompt "你好" --model <minimax_id> \
+  --audio-fields '{"voice":"voice_id","audio_speech_rate":1.1}' --poll
+
+# 纯器乐
+workrally generate music --prompt "摇滚吉他" --model <music_model_id> --lyrics-mode none --poll
+
+# 传入歌词
+workrally generate music --prompt "流行" --model <id> --lyrics-mode input --lyrics "啦啦啦" --poll
+```
+
+传入 `--project-id`（画布 ID）时自动创建 audio 占位节点。场次批量配音请用 `shotlist generate-audio`，不要与画布音频混淆。
+
+---
+
+## 3.6 混元 3D 模型生成
+
+对齐 Web 关键帧结果里的混元 3D（`usePose` / `hunyuan3d`）。**不是** 3D 世界，也不是模型贴图。输入是已入库参考图 `asset_id`，模型固定 `hunyuan-3d-v3.0`。
+
+```bash
+workrally asset search --project-id <id> --type image -o json
+workrally generate 3d --asset-id <asset_id> --poll
+```
+
+成功后用 `generate task` 读 `output_assets` / `output_products`（网格模型 URL）。`--project-id` 是短番项目 ID。
 
 ---
 
