@@ -1,11 +1,12 @@
 ---
 name: workrally
-description: >-
-  WorkRally CLI (workrally) — 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集。
-  支持 AI 生图、AI 生视频、视频提示词优化、画布生音频/音乐、混元 3D 模型生成、AI 生音频、项目/剧集/场次/分镜的完整 CRUD、资产库、媒资管理、无限画布、文件上传下载等。
-  Use when user asks to generate images, generate videos, generate audio, generate music, generate 3d, optimize video prompts,
-  manage projects, series, shots, upload files, download assets, manage materials, or
-  interact with WorkRally platform via command line.
+slug: workrally
+displayName: WorkRally
+display_name: WorkRally
+display_name_en: WorkRally
+description: WorkRally CLI (workrally) — 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集。支持 AI 生图、AI 生视频、视频提示词优化、画布生音频/音乐、混元 3D 模型生成、AI 生音频、项目/剧集/场次/分镜的完整 CRUD、资产库、媒资管理、无限画布、文件上传下载等。Use when user asks to generate images, generate videos, generate audio, generate music, generate 3d, optimize video prompts, manage projects, series, shots, upload files, download assets, manage materials, or interact with WorkRally platform via command line.
+description_zh: 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集，支持 AI 生图/生视频/生音频、项目剧集场次管理、资产库与无限画布。
+description_en: End-to-end AIGC comic-drama creation toolkit for AI Agents—image/video/audio generation, project/series/shot management, asset library, and infinite canvas.
 version: 2.8.0
 license: MIT-0
 author: WorkRally Team
