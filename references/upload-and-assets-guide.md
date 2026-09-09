@@ -215,18 +215,13 @@ workrally asset get <asset_id> -o json
 
 ### 批量创建素材到资产库
 
-`material add` 支持 `--json-list` 参数传入 JSON 数组，一次添加多个素材。也可通过 `tools call` 直接调用底层 MCP 工具：
+`material add` 支持 `--json-list` 参数传入 JSON 数组，一次添加多个素材：
 
 ```bash
-workrally tools call material_manage --json-args '{
-  "action": "add",
-  "material_list": [
-    {"material_id":"asset_id_1","material_name":"素材1","material_type":2,"parent_id":"<状态ID>","material_detail":{...}},
-    {"material_id":"asset_id_2","material_name":"素材2","material_type":3,"parent_id":"<状态ID>","material_detail":{...}}
-  ],
-  "project_ids": ["<project_id>"],
-  "source": 1
-}'
+workrally material add --project-ids <project_id> --source 1 --json-list '[
+  {"material_id":"asset_id_1","material_name":"素材1","material_type":2,"parent_id":"<状态ID>","material_detail":{...}},
+  {"material_id":"asset_id_2","material_name":"素材2","material_type":3,"parent_id":"<状态ID>","material_detail":{...}}
+]'
 ```
 
 ### 批量获取素材详情

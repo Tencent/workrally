@@ -79,15 +79,18 @@ workrally shotlist models --category image,video,videoSingle,videoFrame,audio -o
 
 | 维度 | flags | 写入字段 |
 |------|-------|---------|
-| 图片 | `--image-model` / `--image-aspect-ratio` / `--image-resolution` / `--image-count` | `gen_config.image` |
-| 视频 | `--video-mode`(SubjectToVideo\|Text\|FirstLastFrame\|SmartEdit) + 对应模型；支持 `--no-enable-sound` / `--erase-subtitles` | `gen_config.video` |
-| 音频 | `--audio-model` / `--audio-count` | `gen_config.audio` |
+| 图片 | `--image-model` / `--image-aspect-ratio` / `--image-resolution` / `--image-count` / `--image-quality` / `--mj-params` | `gen_config.image` |
+| 视频 | `--video-mode`(SubjectToVideo\|Text\|FirstLastFrame\|SmartEdit) + 对应模型；`--single-assets` / `--first-last-assets` / `--extra-mode extendVideo` / `--extend-source-id`；支持 `--no-enable-sound` / `--erase-subtitles` | `gen_config.video` |
+| 音频 | `--audio-model` / `--audio-count` / `--audio-config` / `--audio-fields` / `--audio-capabilities` | `gen_config.audio` |
 
-**视频四种模式**（模型字段互不通用，切模式要用对应类别的模型）：
+**视频四种主模式 + 延长子模式**（模型字段互不通用，切模式要用对应类别的模型）：
 - `SubjectToVideo`（参考主体，默认）：模型写 `model`；资产走 `video_role_data_json`。
-- `Text`（单图）：模型写 `textModel`；资产走 `gen_config.video.singleAssets`。
-- `FirstLastFrame`（首尾帧）：模型写 `firstLastModel`；资产走 `gen_config.video.firstLastAssets`。
+- `Text`（单图）：模型写 `textModel`；资产走 `gen_config.video.singleAssets`（CLI `--single-assets`）。
+- `FirstLastFrame`（首尾帧）：模型写 `firstLastModel`；资产走 `gen_config.video.firstLastAssets`（CLI `--first-last-assets`）。
 - `SmartEdit`（智能编辑）：模型写 `smartEditModel`；需 `smartEditSourceVideo`（含 asset_id/width/height/duration），提示词可空。
+- **延长视频**：`mode=SubjectToVideo` + `extraMode=extendVideo` + `__extendSourceId`（源片 asset_id）+ `duration`（延长秒数，不是成片总时长）；生成走 `graph_template=extend_video`。
+
+> Auto 智能路由模型（capability 111）**暂不支持** MCP/CLI 自动分流，请用 `shotlist models` 选具体模型 id。
 
 ---
 
@@ -131,7 +134,7 @@ workrally shotlist generate-image --project-id <pid> --story-ids st_1,st_2 --cou
 workrally shotlist generate-video --project-id <pid> --story-ids st_1,st_2
 # 对已选定视频超分（model 来自 models --category upscale）
 workrally shotlist upscale-video --project-id <pid> --story-ids st_1,st_2 --model <id> --scale 2
-# 生音频（reference_to_audio，每场次 count 条）
+# 生音频（按模型能力走 reference_to_audio 或 text_to_audio，每场次 count 条）
 workrally shotlist generate-audio --project-id <pid> --story-ids st_1,st_2
 
 # 查结果（--type image|video|audio；--watch 轮询至 state=all_done）
@@ -144,7 +147,7 @@ workrally shotlist get-result --story-id st_1 --type audio --watch --interval 5
 
 ## 6. 音频生成（新增能力）
 
-1. 在 `image/animation` 之外，场次可独立生成音频（配音/音效），走 `reference_to_audio` 模板。
+1. 在 `image/animation` 之外，场次可独立生成音频（配音/音效）。参考音频模型（如 Seed Audio）走 `reference_to_audio`；能力列表含 `106` 的 MiniMax 模型走 `text_to_audio` 且不接收参考音频。
 2. 音频提示词存 `extra.audio_prompt`；**音色用 `<音色名>` 引用**，参考资产仅音频（`extra.audio_role_data_json`），与视频/图片参考完全隔离。
 3. 流程：`shotlist models --category audio` 选模型 → `shotlist set-model --audio-model <id>` → （可选 `shotlist recognize --scope audio --match-rule symbol_text` 识别音色）→ `shotlist generate-audio --project-id <pid> --story-ids <ids>` → `shotlist get-result --type audio --watch`。
 
@@ -158,6 +161,8 @@ workrally shotlist bind --story-id st_1 --type image --assets '[{"asset_id":"a1"
 workrally shotlist bind --story-id st_1 --type video --assets '[{...}]'
 # 音频参考 → 独立写入 extra.audio_role_data_json
 workrally shotlist bind --story-id st_1 --type audio --assets '[{"asset_id":"au1","url":"https://..."}]'
+# 本地参考音频 → CLI 自动完成上传、媒资入库、绑定
+workrally shotlist bind --story-id st_1 --type audio --file ./voice.wav --project-id <pid>
 # 替换而非追加
 workrally shotlist bind --story-id st_1 --type image --mode replace --assets '[...]'
 ```
@@ -171,7 +176,11 @@ workrally shotlist bind --story-id st_1 --type image --mode replace --assets '[.
 | 用 `shot image-models/video-models` 给 shotlist 配模型 | 新版用 `shotlist models --category ...`（GetTaskModelList），id 直接写 gen_config |
 | `shot` 与 `shotlist` 混用同一剧集 | 配置字段不互通（扁平字段 vs gen_config），一个剧集固定用一套 |
 | `generate-*` 不传 `--project-id` | 新版走 SubmitTask，必须传短番项目 ID |
-| 等 `generate-*` 返回 task_id 去轮询 | 不返回；用 `shotlist get-result --type image\|video\|audio [--watch]` |
+| 等 `generate-*` 返回 task_id 去轮询 | MCP 会返回 `task_ids`；CLI 仍建议用 `shotlist get-result --type image\|video\|audio [--watch]` |
 | 一次 `get-result` 同时查三类 | image/video/audio 是三条独立进度，分别用 `--type` 查 |
 | 音色识别不出来 | 音色要用 `<音色名>` 且 `--match-rule symbol_text`（音频路已强制） |
+| 本地参考音频不能直接绑定 | 使用 `shotlist bind --type audio --file <path> --project-id <pid>`，CLI 会自动上传并入库 |
+| 已绑定音频生成时没有进入 `ref_audios` | 绑定项需有 `asset_id/assetId` 或 URL；新版 bind 会自动补齐 `fileType=audio` |
+| 延长视频提交失败 | 需 `--extra-mode extendVideo` + `--extend-source-id` + `--duration`（延长秒数），且 mode 为 SubjectToVideo |
+| Auto 模型生成结果不符合预期 | MCP/CLI 不会走前端 task_router，请改选具体模型 |
 | 硬编码模型 id | 必须先 `shotlist models` 动态获取 |

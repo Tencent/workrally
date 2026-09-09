@@ -288,19 +288,13 @@ workrally generate optimize-prompt --prompt "将视频从尾帧延长5秒" --mod
 
 ---
 
-## 通用工具透传
+## 查看白名单工具
 
-当高级封装命令无法满足需求时，使用通用透传直接调用任何 MCP 工具：
+只能使用 `tools list` / `tools describe` 和已封装的 CLI 子命令。**不要**透传调用未列出的 MCP 工具（`tools call` 已移除）。
 
 ```bash
-# 列出所有可用工具
 workrally tools list -o json
-
-# 查看某个工具的参数 schema
 workrally tools describe <tool_name>
-
-# 直接调用（适合复杂参数场景）
-workrally tools call <tool_name> --json-args '{"key":"value"}'
 ```
 
 ---

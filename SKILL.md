@@ -6,7 +6,7 @@ description: >-
   Use when user asks to generate images, generate videos, generate audio, generate music, generate 3d, optimize video prompts,
   manage projects, series, shots, upload files, download assets, manage materials, or
   interact with WorkRally platform via command line.
-version: 2.8.0
+version: 2.9.0
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -39,13 +39,12 @@ API Key 申请：[龙虾配置](https://workrally.qq.com/open-api)
 ## 命令速查
 
 ```bash
-# === 项目（project）— list / get / create / update（软删除无子命令，见下） ===
+# === 项目（project）— list / get / create / update / delete ===
 workrally project list [--search "关键词"]    # 列出/搜索项目
 workrally project get <id>                    # 项目详情
 workrally project create "项目名"             # 创建项目
 workrally project update <id> --name "新名称" # 更新项目
-workrally tools call project_delete --json-args '{"project_id":"<id>"}'   # 软删除单个项目（→回收站）
-# 批量：workrally tools describe project_delete  # 使用 project_ids 数组
+workrally project delete <ids...>             # 软删除（→回收站；恢复请到 Web）
 
 # === 剧集（series）— 全新命令组（CRUD 完整） ===
 workrally series list --project-id <id>                                 # 剧集列表
@@ -65,10 +64,12 @@ workrally shotlist delete <story_ids...>                                        
 workrally shotlist sort --series-id <id> --order id1,id2,id3                           # 重排
 # --- 模型 & 配置（写入 extra.gen_config）---
 workrally shotlist models --category image,video,videoSmartEdit,upscale,audio          # ⭐ 统一模型列表
-workrally shotlist set-model [--story-ids id1,id2] --image-model <id> --image-aspect-ratio 16:9        # 配置图片
-workrally shotlist set-model [--story-ids id1,id2] --video-mode SubjectToVideo --video-model <id> --duration 5 --video-aspect-ratio 16:9  # 配置视频
-workrally shotlist set-model [--story-ids id1,id2] --audio-model <id>                  # 配置音频
-workrally shotlist bind --story-id <id> --type image --assets '[{...}]'               # 绑定参考（audio→独立字段）
+workrally shotlist set-model [--story-ids id1,id2] --image-model <id> --image-aspect-ratio 16:9 [--image-quality high] [--mj-params '{}']
+workrally shotlist set-model [--story-ids id1,id2] --video-mode SubjectToVideo --video-model <id> --duration 5 --video-aspect-ratio 16:9
+workrally shotlist set-model [--story-ids id1,id2] --extra-mode extendVideo --extend-source-id <asset_id> --duration 4  # 延长视频
+workrally shotlist set-model [--story-ids id1,id2] --audio-model <id> [--audio-config '{}']  # 配置音频
+workrally shotlist bind --story-id <id> --type audio --file ./voice.wav --project-id <id>    # 本地素材：上传→入库→绑定
+workrally shotlist bind --story-id <id> --type image --assets '[{...}]'                     # 已入库素材绑定（audio→独立字段）
 workrally shotlist recognize --series-id <id> --project-id <id> [--scope both] [--match-rule symbol_text]  # 识别（含音频路）
 # --- 生成（仅提交；查结果用 get-result [--watch]）---
 workrally shotlist generate-image --project-id <id> --story-ids id1,id2 [--count N]    # 生图 → get-result --type image
@@ -149,10 +150,10 @@ workrally generate task <task_id> [--poll]    # 查询/轮询生成任务状态
 # 生图/生视频成功：output_type="assets"，产物在 output_assets
 # 提示词优化成功：output_type="text"，产物在 output_text（不要找 output_assets / output_products）
 
-# === 通用透传（调用任意 MCP 工具）===
-workrally tools list                          # 列出所有工具
+# === 通用（仅查看白名单，禁止透传调用）===
+workrally tools list                          # 列出核心白名单工具
 workrally tools describe <tool_name>          # 查看参数 schema
-workrally tools call <tool_name> --arg key=value [--json-args '{}']
+# 不要使用 tools call；未列出的 MCP 工具已禁止调用。关键帧/配音/动效请用 Web。
 
 # === URL / 升级 ===
 workrally url build "页面名" [--params '{}']  # 构建 WorkRally 前端链接
@@ -213,7 +214,7 @@ workrally shotlist get-result --story-id <sid> --type audio --watch
 ## ⚠️ 重要规则
 
 1. **前端链接必须用 `workrally url build` 生成**，严禁自行拼接 URL
-2. **模型 ID 必须动态获取**：`image-models` / `video-models` / `audio-models` / `content-models`，严禁猜测或硬编码。混元 3D 固定 hunyuan-3d-v3.0，只需 `--asset-id`
+2. **模型 ID 必须动态获取**：`image-models` / `video-models` / `audio-models` / `content-models`，严禁猜测或硬编码。场次批量制作使用 `shotlist models`；音频模型返回的 `capabilities/fields/restrictions` 也应一并用于配置。混元 3D 固定 hunyuan-3d-v3.0，只需 `--asset-id`
 3. **`canvas` ≠ `project`**：画布用 `canvas`，项目用 `project`，两者 ID 不能互换
 4. **`build-draft` 实时协同**：写入后所有在线用户立即看到变更，默认增量合并（只传变更节点），支持多人并发安全操作
 5. **`build-draft` 节点校验**：8种节点类型各有必填字段，详见 [`canvas-guide.md`](references/canvas-guide.md)
