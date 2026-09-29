@@ -42,7 +42,7 @@
 | `imageGenerator` | 图片生成器 | 无必填（params 可选） | ❌ |
 | `videoGenerator` | 视频生成器 | 无必填（params 可选） | ❌ |
 | `artboard` | 画板容器 | 无（建议设置 `style.width/height`） | ❌ (画板不可嵌套) |
-| `text` | 文本 | `data.text.content` (字符串，最大2000字符) | ❌ |
+| `text` | 文本 | `data.text.content` (字符串，最大90000字符) | ❌ |
 | `freehand` | 画笔涂鸦 | `data.freehand.points` + `data.freehand.initialSize` | ❌ |
 
 ### 节点通用结构
@@ -175,7 +175,7 @@
 }
 ```
 
-**必填**: `data.text.content`（字符串，最大2000字符）
+**必填**: `data.text.content`（字符串，最大90000字符）
 **可选**（有默认值）: `fontSize`(24), `fontWeight`(400, 加粗用700), `textAlign`("left"), `color`("#ffffff")
 建议设置 `style.width`（默认200）。
 
@@ -333,7 +333,7 @@ workrally canvas build-draft <canvas_id> \
 | image/video 既没有 asset.id 也没有 task | ❌ 空节点 |
 | audio 没有 asset.id | ❌ 音频无生成器 |
 | text 没有 data.text.content 或类型非字符串 | ❌ |
-| text 内容超过 2000 字符 | ❌ |
+| text 内容超过 90000 字符 | ❌ |
 | freehand 缺少 points 或 initialSize | ❌ |
 | 不允许的节点类型（如 group） | ❌ |
 | 画板子节点类型不是 image/video/audio | ❌ |

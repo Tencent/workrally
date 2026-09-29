@@ -8,12 +8,12 @@ description: WorkRally CLI (workrally) — 面向 AI Agent 的 AIGC 漫剧视频
 description_zh: 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集，支持 AI 生图/生视频/生音频、项目剧集场次管理、资产库与无限画布。
 description_en: End-to-end AIGC comic-drama creation toolkit for AI Agents—image/video/audio generation, project/series/shot management, asset library, and infinite canvas.
 tags: [AIGC, CLI, 漫剧, 生图, 生视频, 生音频, 项目, 剧集, 场次, 画布, 资产库]
-version: 2.9.1
+version: 2.10.1
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
 user-invocable: true
-metadata: {"openclaw":{"emoji":"🎬","requires":{"bins":["workrally"],"env":["WORKRALLY_API_KEY","WORKRALLY_ENDPOINT","WORKRALLY_CONFIG_DIR","WORKRALLY_NO_UPDATE_CHECK"]},"primaryEnv":"WORKRALLY_API_KEY","credentials":{"storage":"~/.workrally/config.json","configDirEnv":"WORKRALLY_CONFIG_DIR","description":"workrally auth login 写入的 API Key 持久化文件，JSON 格式，仅存储 api_key 和 endpoint。非持久化容器中可通过 WORKRALLY_CONFIG_DIR 环境变量指定配置目录"},"install":[{"id":"npm","kind":"node","package":"workrally","bins":["workrally"],"label":"Install WorkRally CLI (npm)"}],"category":"AIGC","tags":["workrally","aigc","cli","video-generation","image-generation","ai-tools","story","shot","series"]}}
+metadata: {"openclaw":{"emoji":"🎬","requires":{"bins":["workrally"],"env":["WORKRALLY_API_KEY","WORKRALLY_ENDPOINT","WORKRALLY_CONFIG_DIR","WORKRALLY_NO_UPDATE_CHECK"]},"primaryEnv":"WORKRALLY_API_KEY","credentials":{"storage":"~/.workrally/config.json","configDirEnv":"WORKRALLY_CONFIG_DIR","description":"workrally auth login 写入的登录态：API Key，或 OAuth access/refresh token，以及 endpoint。非持久化容器中可通过 WORKRALLY_CONFIG_DIR 环境变量指定配置目录"},"install":[{"id":"npm","kind":"node","package":"workrally","bins":["workrally"],"label":"Install WorkRally CLI (npm)"}],"category":"AIGC","tags":["workrally","aigc","cli","video-generation","image-generation","ai-tools","story","shot","series"]}}
 ---
 
 # WorkRally CLI (workrally)
@@ -25,10 +25,10 @@ metadata: {"openclaw":{"emoji":"🎬","requires":{"bins":["workrally"],"env":["W
 ```bash
 npm install -g workrally
 
-# 配置 API Key（三选一）
-workrally auth login                          # 交互式登录（推荐）
-workrally auth login --token <YOUR_API_KEY>   # 命令行传入
-export WORKRALLY_API_KEY=<YOUR_API_KEY>       # 环境变量（仅推荐 CI/CD，Agent/子进程可能读不到 shell 配置）
+# 配置登录。Agent / CI 只用 API Key，不要自己实现 OAuth，也不要请求 127.0.0.1 回调。
+workrally auth login --token <YOUR_API_KEY>   # Agent / CI
+export WORKRALLY_API_KEY=<YOUR_API_KEY>       # 环境变量优先于配置文件
+workrally auth login                          # 仅人在本机终端使用，CLI 自己打开浏览器
 # ↑ auth login 自动将 Token 写入配置文件：
 #   若 WORKRALLY_CONFIG_DIR 已设置 → $WORKRALLY_CONFIG_DIR/config.json
 #   否则 → ~/.workrally/config.json
@@ -241,7 +241,7 @@ workrally shotlist get-result --story-id <sid> --type audio --watch
 
 ## 环境变量
 
-- `WORKRALLY_API_KEY` — API Key (Bearer Token)
+- `WORKRALLY_API_KEY` — API Key (Bearer Token)。设置后优先于 `auth login` 保存的 OAuth 登录态
 - `WORKRALLY_ENDPOINT` — API 端点 (默认 `https://workrally.qq.com/zenstudio/api/mcp`)
 - `WORKRALLY_CONFIG_DIR` — 配置文件目录 (默认 `~/.workrally`，非持久化容器建议指向持久卷)
 - `WORKRALLY_NO_UPDATE_CHECK=1` — 禁用自动版本检查 (CI/CD 推荐)
