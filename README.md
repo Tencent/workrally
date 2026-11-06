@@ -11,9 +11,10 @@ skill/
 ├── SKILL.md                ← Skill 入口（元数据 + 指令），ClawHub 解析此文件
 ├── LICENSE.txt             ← 许可证
 └── references/             ← 深度参考文档，AI Agent 按需加载
-    ├── ai-generation-guide.md      AI 生成指南
+    ├── ai-generation-guide.md      AI 生成指南（含样片 draft）
     ├── canvas-guide.md             无限画布操作指南
     ├── common-pitfalls.md          常见易错点
+    ├── knowledge-guide.md          企业知识库检索与写入指南
     ├── shotlist-guide.md           场次批量制作（对齐 Web /shot）
     └── upload-and-assets-guide.md  上传与素材管理指南
 ```
@@ -21,10 +22,11 @@ skill/
 ## 核心能力
 
 - **AI 生图** — Kontext 模型，支持多参考图、可选推理质量
-- **AI 生视频** — 4 种驱动模式（文本/首尾帧/参考主体/视频编辑）
+- **AI 生视频** — 4 种驱动模式（文本/首尾帧/参考主体/视频编辑），支持低成本样片（draft）生成与成片升级
 - **提示词优化** — gen_content 文本任务，产物为 `output_text`
 - **无限画布** — Yjs 协同编辑，8 种节点类型，实时同步
 - **项目 & 媒资管理** — 项目 CRUD、素材上传入库、资产库树形管理
+- **企业知识库** — 知识库/知识卡片检索、资产级与正文级知识写入
 - **通用透传** — 可调用 WorkRally MCP Server 全部工具
 
 ## 第三方商店
