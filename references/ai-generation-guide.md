@@ -172,16 +172,40 @@ workrally generate video \
 
 #### VideoEdit 模式 — 视频编辑
 
-`model` 必须来自 `video-models` 的 `video_edit_providers[]`。必须传 `--origin-video <原视频素材ID>`（asset_id，不是 URL）。此模式 **不要** 传 `--enable-sound` / `--no-enable-sound`（下游 graph_input 不带该字段）。
+`model` 必须来自 `video-models` 的 `video_edit_providers[]`。必须传 `--origin-video <原视频素材ID>`（asset_id，不是 URL）。
+
+参考图用 `--reference-assets`，且 `type` 只能是 `image`。服务端写入 `graph_input.ref_images`，不会把图片放进 `origin_video` 或 `ref_videos`。视频/音频/文档参考会被直接拒绝。
+
+Rally-Video-Edit-2.0（模型 ID `6cdvjhqm6e`）对齐画布协议：`graph_template=video_edit`，`mode=304`，带 `enable_sound`（不传则服务端默认 `true`，关闭用 `--no-enable-sound`），不写 `duration` / `resolution`。其他视频编辑模型在没传参考图时仍只有 `model` / `positive_prompt` / `origin_video`，不要给它们传音效参数。
 
 ```bash
 workrally generate video \
   --mode VideoEdit \
-  --prompt "将背景替换成蓝天" \
+  --prompt "将背景替换成蓝天，角色换成参考图" \
   --model <video_edit_provider_id> \
   --origin-video <asset_id> \
+  --reference-assets '[{"type":"image","asset_id":"<参考图asset_id>"}]' \
   --poll
 ```
+
+#### SmartEdit 里的视频编辑模型
+
+梦宝等 SmartEdit 模型仍走 `reference_to_video`：源片进 `ref_videos[0]`，参考图/视频/音频进对应数组，提示词可空。
+
+`smart_edit_providers[]` 里如果选到 `6cdvjhqm6e`，服务端改走上面的 `video_edit` 协议：源片写 `origin_video`，`--reference-assets` 只能是图片并写入 `ref_images`。提示词必填。再把参考视频放进 `reference_assets` 会被拒绝，不会提交成会被网关秒拒的 `ref_videos`。
+
+```bash
+workrally generate video \
+  --mode SmartEdit \
+  --prompt "把主角换成参考图里的造型" \
+  --model <smart_edit_provider_id> \
+  --source-video <asset_id> \
+  --source-width 1920 --source-height 1080 --source-duration 5000 \
+  --reference-assets '[{"type":"image","asset_id":"<参考图asset_id>"}]' \
+  --poll
+```
+
+模型 ID 以 `video-models` 当时返回的为准，不要把 `6cdvjhqm6e` 当成永久写死的值。它只是当前 Rally-Video-Edit-2.0 的 ID。
 
 #### SubjectToVideo 模式 — 参考主体驱动
 
@@ -205,11 +229,12 @@ workrally generate video \
 | `--resolution` | — | 模型首个可用 | 分辨率枚举: 1=480P 2=540P 3=720P 4=1080P 5=1440P 6=2160P 7=4320P 8=360P（具体支持见 `video-models` 的 `resolution_options`） |
 | `--duration` | — | — | 视频时长（秒），可选值取决于模型 |
 | `--count` | — | `1` | 生成数量 1-4（后端一个任务生成 1 个视频，count>1 会并发发起 N 个独立任务并返回 task_ids 数组） |
-| `--enable-sound` | — | 服务端默认 true | 生成音效（仅部分模型支持）。**不传则默认开启**（与前端一致）；关闭请用 `--no-enable-sound`。VideoEdit 不要传 |
+| `--enable-sound` | — | 服务端默认 true | 生成音效（仅部分模型支持）。**不传则默认开启**（与前端一致）；关闭请用 `--no-enable-sound`。旧 VideoEdit 模板不写该字段；`6cdvjhqm6e` 会写入 |
 
-SmartEdit 需传 `--source-video/--source-width/--source-height/--source-duration`；`source-duration` 单位毫秒。ExtendVideo 的 `--duration` 表示延长秒数。Wan 3.0 文档参考仅 SubjectToVideo 支持，`--reference-assets` 中传 `{"type":"file","asset_id":"...","name":"brief.pdf"}`。
+SmartEdit 需传 `--source-video/--source-width/--source-height/--source-duration`；`source-duration` 单位毫秒。模型是 Rally-Video-Edit-2.0 时，参考图走 `--reference-assets` 的 image，服务端改写 `video_edit`。ExtendVideo 的 `--duration` 表示延长秒数。Wan 3.0 文档参考仅 SubjectToVideo 支持，`--reference-assets` 中传 `{"type":"file","asset_id":"...","name":"brief.pdf"}`。
 | `--no-enable-sound` | — | — | 显式关闭音效（`enable_sound=false`） |
 | `--extra-params` | — | — | JSON 对象。CLI 传 MCP `extraParams`；服务端写入 `graph_input.extra_params` 且将每个 value 序列化为字符串 |
+| `--draft` | — | — | 样片 JSON。仅 `video-models` 里 `support_draft=true` 的模型。样片 `{"enable":true}` 且 `--resolution 1`；转正片 `{"draft_id":"<样片素材ID>"}` 且 `--resolution 4`，模型不变。不是画布 `build-draft` |
 | `--project-id` | — | — | 画布 ID（传入后自动创建占位节点） |
 | `--short-series-project-id` | — | — | 项目 ID |
 | `--name` | — | — | 素材名称 |

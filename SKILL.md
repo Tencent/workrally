@@ -4,11 +4,11 @@ slug: workrally
 displayName: WorkRally
 display_name: WorkRally
 display_name_en: WorkRally
-description: WorkRally CLI (workrally) — 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集。支持 AI 生图、AI 生视频、视频提示词优化、画布生音频/音乐、混元 3D 模型生成、AI 生音频、项目/剧集/场次/分镜的完整 CRUD、资产库、媒资管理、无限画布、文件上传下载等。Use when user asks to generate images, generate videos, generate audio, generate music, generate 3d, optimize video prompts, manage projects, series, shots, upload files, download assets, manage materials, or interact with WorkRally platform via command line.
-description_zh: 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集，支持 AI 生图/生视频/生音频、项目剧集场次管理、资产库与无限画布。
-description_en: End-to-end AIGC comic-drama creation toolkit for AI Agents—image/video/audio generation, project/series/shot management, asset library, and infinite canvas.
-tags: [AIGC, CLI, 漫剧, 生图, 生视频, 生音频, 项目, 剧集, 场次, 画布, 资产库]
-version: 2.10.1
+description: WorkRally CLI (workrally) — 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集。支持 AI 生图、AI 生视频（含样片 draft）、视频提示词优化、画布生音频/音乐、混元 3D 模型生成、AI 生音频、项目/剧集/场次/分镜的完整 CRUD、资产库、媒资管理、企业知识库检索与写入、无限画布、文件上传下载等。Use when user asks to generate images, generate videos, generate audio, generate music, generate 3d, optimize video prompts, manage projects, series, shots, search or write a knowledge base, upload files, download assets, manage materials, or interact with WorkRally platform via command line.
+description_zh: 面向 AI Agent 的 AIGC 漫剧视频创作全流程工具集，支持 AI 生图/生视频/生音频、项目剧集场次管理、资产库、企业知识库与无限画布。
+description_en: End-to-end AIGC comic-drama creation toolkit for AI Agents—image/video/audio generation, project/series/shot management, asset library, enterprise knowledge base, and infinite canvas.
+tags: [AIGC, CLI, 漫剧, 生图, 生视频, 生音频, 项目, 剧集, 场次, 画布, 资产库, 知识库]
+version: 2.12.0
 license: MIT-0
 author: WorkRally Team
 homepage: https://workrally.qq.com
@@ -80,6 +80,15 @@ workrally shotlist upscale-video --project-id <id> --story-ids id1,id2 --model <
 workrally shotlist generate-audio --project-id <id> --story-ids id1,id2 [--count N]    # ⭐ 生音频 → get-result --type audio
 workrally shotlist get-result --story-id <id> --type image|video|audio [--watch]       # 查进度与产物
 
+# === 企业知识库（仅企业账号；写入前必须让用户逐级确认，详见 references/knowledge-guide.md）===
+workrally kb list [--category project,personal] [--format json]
+workrally kb search --kb-id <id> --query "设定"          # --os 默认按本机推断
+workrally kb card-list --kb-id <id>                      # 一次只查用户已选定的一个库
+workrally kb upload ./设定.pdf                       # 直传，不带 Content-Type。不要用 workrally upload
+workrally asset create --url <file_url> --status 3 --channel kb
+workrally kb raw-create --kb-id <id> --card-id <id> --directory /设定 --name 主角.md --content "..."
+# 现成文件用 --asset-id，不要把原文塞进 --content
+
 # === 上传 / 下载 ===
 workrally upload ./file.png -o json           # 上传文件 (COS SDK 直传)
 workrally download <asset_id> [-d ./output/]  # 下载素材 (自动处理访问凭证)
@@ -96,14 +105,18 @@ workrally generate video-models               # 查看可用模型（必须先�
 workrally generate video --prompt "描述" --model <provider_id> --poll                        # 纯文生视频（默认 Text 模式）
 workrally generate video --prompt "描述" --model <provider_id> --single-image-url "url" --poll  # 图生视频（Text 模式 + 参考图）
 workrally generate video --mode FirstLastFrame --prompt "描述" --model <provider_id> --first-frame-url "url" --poll  # 首尾帧
-workrally generate video --mode VideoEdit --prompt "描述" --model <id> --origin-video <asset_id> --poll  # 视频编辑
-# 其他模式: SubjectToVideo(--reference-assets)
+workrally generate video --mode VideoEdit --prompt "描述" --model <id> --origin-video <asset_id> \
+  --reference-assets '[{"type":"image","asset_id":"<参考图>"}]' --poll  # 视频编辑。参考图必须是 image，服务端写入 ref_images
+# 其他模式: SubjectToVideo(--reference-assets，可含 image/video/audio/file)
 workrally generate video --mode SmartEdit --model <id> --source-video <asset_id> --source-width 1920 --source-height 1080 --source-duration 5000 --poll
+# SmartEdit 选中 Rally-Video-Edit-2.0（6cdvjhqm6e）时，服务端改走 video_edit：源片→origin_video，--reference-assets 只能是图片并写入 ref_images。提示词必填。不要传视频/音频/文档参考
 workrally generate video --mode ExtendVideo --model <id> --source-video <asset_id> --duration 8 --poll
 # SubjectToVideo 的 --reference-assets 支持 file 文档（Wan 3.0）：{"type":"file","asset_id":"...","name":"brief.pdf"}
 # --mode 默认 Text；通用选项: --aspect-ratio <比例> --resolution <枚举> --duration <秒> --count 1-4 --poll
-# 音效默认开启（与前端一致）；关闭用 --no-enable-sound。VideoEdit 不要传音效相关参数
+# 音效默认开启（与前端一致）；关闭用 --no-enable-sound。旧 VideoEdit 模板不写 enable_sound；6cdvjhqm6e 由服务端写入，默认 true
 # --aspect-ratio 默认 16:9；--resolution 不传取模型首个可用(枚举见 video-models 的 resolution_options)
+# 样片：仅 support_draft=true。样片 --resolution 1 --draft '{"enable":true}'；转正片同一模型 --resolution 4 --draft '{"draft_id":"<样片素材ID>"}'
+# 场次配模型把同一 JSON 交给 shotlist set-model --draft，写入 gen_config.video.draft
 
 # === 画布生音频 / 音乐（对齐 Web 画布音频生成器）===
 workrally generate audio-models               # 查看 audio_models / music_models（必须先调用！）
@@ -234,6 +247,7 @@ workrally shotlist get-result --story-id <sid> --type audio --watch
 | [`references/shotlist-guide.md`](references/shotlist-guide.md) | ⭐ **场次批量制作**（对齐 Web `/shot`）— CRUD、gen_config、生图/生视频/**生音频**、结果查询、符号识别 |
 | [`references/canvas-guide.md`](references/canvas-guide.md) | 无限画布操作 — 8种节点类型、画板嵌套、build-draft 增量/覆盖模式、协同编辑 |
 | [`references/upload-and-assets-guide.md`](references/upload-and-assets-guide.md) | 上传与素材管理 — 三步上传流程、媒资库 vs 资产库、树形目录操作 |
+| [`references/knowledge-guide.md`](references/knowledge-guide.md) | 企业知识库 — 检索、目录、资产，以及确认后的建库 / 建卡 / 写入 |
 | [`references/ai-generation-guide.md`](references/ai-generation-guide.md) | AI 生成 — Kontext 生图、4种视频驱动模式、画布音频/音乐、混元 3D 模型、提示词优化、模型动态获取、任务轮询 |
 | [`references/common-pitfalls.md`](references/common-pitfalls.md) | 常见易错点 — 项目/画布混淆、模型硬编码、上传缺步骤等典型错误 |
 

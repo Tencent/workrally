@@ -80,15 +80,16 @@ workrally shotlist models --category image,video,videoSingle,videoFrame,audio -o
 | 维度 | flags | 写入字段 |
 |------|-------|---------|
 | 图片 | `--image-model` / `--image-aspect-ratio` / `--image-resolution` / `--image-count` / `--image-quality` / `--mj-params` | `gen_config.image` |
-| 视频 | `--video-mode`(SubjectToVideo\|Text\|FirstLastFrame\|SmartEdit) + 对应模型；`--single-assets` / `--first-last-assets` / `--extra-mode extendVideo` / `--extend-source-id`；支持 `--no-enable-sound` / `--erase-subtitles` | `gen_config.video` |
+| 视频 | `--video-mode`(SubjectToVideo\|Text\|FirstLastFrame\|SmartEdit) + 对应模型；`--single-assets` / `--first-last-assets` / `--extra-mode extendVideo` / `--extend-source-id`；支持 `--no-enable-sound` / `--erase-subtitles` / `--draft` | `gen_config.video` |
 | 音频 | `--audio-model` / `--audio-count` / `--audio-config` / `--audio-fields` / `--audio-capabilities` | `gen_config.audio` |
 
 **视频四种主模式 + 延长子模式**（模型字段互不通用，切模式要用对应类别的模型）：
 - `SubjectToVideo`（参考主体，默认）：模型写 `model`；资产走 `video_role_data_json`。
 - `Text`（单图）：模型写 `textModel`；资产走 `gen_config.video.singleAssets`（CLI `--single-assets`）。
 - `FirstLastFrame`（首尾帧）：模型写 `firstLastModel`；资产走 `gen_config.video.firstLastAssets`（CLI `--first-last-assets`）。
-- `SmartEdit`（智能编辑）：模型写 `smartEditModel`；需 `smartEditSourceVideo`（含 asset_id/width/height/duration），提示词可空。
+- `SmartEdit`（智能编辑）：模型写 `smartEditModel`；需 `smartEditSourceVideo`（含 asset_id/width/height/duration）。梦宝提示词可空，额外参考可含图片/视频/音频。模型为 Rally-Video-Edit-2.0（`6cdvjhqm6e`）时，生成走 `video_edit`：源片写 `origin_video`，`smartEditAssets` 只能是图片并写入 `ref_images`，提示词必填。
 - **延长视频**：`mode=SubjectToVideo` + `extraMode=extendVideo` + `__extendSourceId`（源片 asset_id）+ `duration`（延长秒数，不是成片总时长）；生成走 `graph_template=extend_video`。
+- **样片**：仅 `shotlist models` 里 `support_draft=true` 的视频模型。`--draft '{"enable":true}'` 且 `--video-resolution 1` 生成样片；`--draft '{"draft_id":"<样片素材ID>"}'` 且 `--video-resolution 4` 转正片。模型保持不变。写入 `gen_config.video.draft`。
 
 > Auto 智能路由模型（capability 111）**暂不支持** MCP/CLI 自动分流，请用 `shotlist models` 选具体模型 id。
 

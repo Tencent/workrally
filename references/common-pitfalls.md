@@ -269,6 +269,42 @@ workrally generate optimize-prompt --prompt "将视频从尾帧延长5秒" --mod
 
 ---
 
+## ❌ 错误 13：视频编辑的参考图没进 ref_images
+
+### 问题
+
+VideoEdit 只传了 `--origin-video`，参考图写在提示词里，或把图片/视频塞进和参考生视频一样的 `ref_videos`。SmartEdit 选了 Rally-Video-Edit-2.0 后仍按梦宝协议提交，参考图任务会被网关直接拒绝。
+
+### 正确做法
+
+- VideoEdit：`--origin-video` 放源视频，`--reference-assets` 只放 `type=image`。服务端写入 `graph_input.ref_images`。
+- SmartEdit 且模型是 `6cdvjhqm6e`：同样只传图片参考。服务端把源片改写到 `origin_video`，模板用 `video_edit`，不写 `ref_videos` / `duration` / `resolution`。提示词必填。
+- 梦宝等其他 SmartEdit 模型继续用 `reference_to_video`，源片在 `ref_videos[0]`。
+
+## ❌ 错误 14：样片分辨率或模型用错
+
+### 问题
+
+给不支持样片的模型传了 `--draft`，或样片和正片共用同一个分辨率。转正片时还换了模型。
+
+### 正确做法
+
+先看 `generate video-models` 或 `shotlist models` 的 `support_draft`。只有 `true` 才能传 `--draft`。
+
+- 生成样片：`--draft '{"enable":true}'`，分辨率 `1`（480P）
+- 转正片：`--draft '{"draft_id":"<样片素材ID>"}'`，分辨率 `4`（1080P），模型与样片相同
+- 画布用 `generate video --draft`。场次用 `shotlist set-model --draft`，写入 `gen_config.video.draft`
+
+## ❌ 错误 15：知识库写入没让用户逐级确认
+
+### 问题
+
+一次列出所有库的卡片让用户挑选，或把现成 PDF / Word 读进 `--content`。目录不存在时直接写入，服务端会自动建目录。
+
+### 正确做法
+
+`kb list` 只展示 `writable=true` → 等用户选一个库 → 只用这个 `kb_id` 调 `kb card-list` → 再确认目录和文件名。现成文件用 `kb upload` 再 `asset create --status 3 --channel kb`，把素材 ID 交给 `--asset-id`。不要用 `workrally upload`。细则见 `references/knowledge-guide.md`。
+
 ## 常见判断速查表
 
 | 场景 | 需要什么 |
